@@ -65,7 +65,7 @@
           </template>
 
           <!-- 暂无文章数据 -->
-          <template v-else-if="loading && dataList.length == 0">
+          <template v-else-if="dataList.length == 0">
             <el-empty description="暂无文章数据" />
           </template>
 
@@ -74,50 +74,9 @@
 
             <!-- 已登录的文章列表 -->
             <template v-if="piniaIfLogin && piniaFirstTag != 0 && piniaFirstTag != 4">
-              <div class="articleListContainer" v-for="(item, index) in dataList" :key="index" @click.stop="goToDetail(item.id)" >
-                <article class="articleLeftContent" >
-
-                  <section class="title" >
-                    {{ getTruncatedTitle(item.title) }}
-                  </section>
-
-                  <section class="content">
-                    {{ getTruncatedContent(item.content, item.avatar)
-                    }}
-                  </section>
-
-                  <section class="iconCon">
-                    <section class="wordBox">
-                      <p class="word">{{ item.author }}&nbsp;&nbsp;&nbsp;|</p>
-                    </section>
-                    <section class="wordBox">
-                      <i class="icon iconfont icon-yanjing"></i>
-                      <p class="word">{{ handleView(item.view) }}</p>
-                    </section>
-                    <section class="wordBox">
-                      <i class="icon iconfont icon-zan" @click.stop="praiseChange(item.id)" v-if="!item.praiseStatus"></i>
-                      <i class="icon iconfont icon-zan1" @click.stop="praiseChange(item.id)" v-else></i>
-                      <p class="word">{{ handlePraise(item.praise) }}</p>
-                    </section>
-                  </section>
-
-                </article>
-
-                <article class="articleRightContent" >
-                  <el-image v-if="item.coverImage != null" :src="item.coverImage" lazy></el-image>
-                </article>
-              </div>
-
-               <router-view />
-            </template>
-
-
-            <!-- 未登录的文章列表 -->
-            <template v-if="!piniaIfLogin && piniaFirstTag != 3">
-
-
-              <div class="articleListContainer" v-for="(item, index) in dataList" :key="index" @click.stop="goToDetail(item.id)">
-                <article class="articleLeftContent" >
+              <div class="articleListContainer" v-for="(item, index) in dataList" :key="index"
+                @click.stop="goToDetail(item.id)">
+                <article class="articleLeftContent">
 
                   <section class="title">
                     {{ getTruncatedTitle(item.title) }}
@@ -137,7 +96,8 @@
                       <p class="word">{{ handleView(item.view) }}</p>
                     </section>
                     <section class="wordBox">
-                      <i class="icon iconfont icon-zan" @click.stop="praiseChange(item.id)" v-if="!item.praiseStatus"></i>
+                      <i class="icon iconfont icon-zan" @click.stop="praiseChange(item.id)"
+                        v-if="!item.praiseStatus"></i>
                       <i class="icon iconfont icon-zan1" @click.stop="praiseChange(item.id)" v-else></i>
                       <p class="word">{{ handlePraise(item.praise) }}</p>
                     </section>
@@ -145,12 +105,56 @@
 
                 </article>
 
-                <article class="articleRightContent" >
+                <article class="articleRightContent">
                   <el-image v-if="item.coverImage != null" :src="item.coverImage" lazy></el-image>
                 </article>
               </div>
 
-               <!-- <router-view /> -->
+              <!-- <router-view /> -->
+            </template>
+
+
+            <!-- 未登录的文章列表 -->
+            <template v-if="!piniaIfLogin && piniaFirstTag != 3">
+
+
+              <div class="articleListContainer" v-for="(item, index) in dataList" :key="index"
+                @click.stop="goToDetail(item.id)">
+                <article class="articleLeftContent">
+
+                  <section class="title">
+                    {{ getTruncatedTitle(item.title) }}
+                  </section>
+
+                  <section class="content">
+                    {{ getTruncatedContent(item.content, item.avatar)
+                    }}
+                  </section>
+
+                  <section class="iconCon">
+                    <section class="wordBox">
+                      <p class="word">{{ item.author }}&nbsp;&nbsp;&nbsp;|</p>
+                    </section>
+                    <section class="wordBox">
+                      <i class="icon iconfont icon-yanjing"></i>
+                      <p class="word">{{ handleView(item.view) }}</p>
+                    </section>
+                    <section class="wordBox">
+                      <i class="icon iconfont icon-zan" @click.stop="praiseChange(item.id)"
+                        v-if="!item.praiseStatus"></i>
+                      <i class="icon iconfont icon-zan1" @click.stop="praiseChange(item.id)" v-else></i>
+                      <p class="word">{{ handlePraise(item.praise) }}</p>
+                    </section>
+                  </section>
+
+                </article>
+
+                <article class="articleRightContent">
+                  <el-image v-if="item.coverImage != null" :src="item.coverImage" lazy></el-image>
+                </article>
+              </div>
+
+              <!-- <router-view /> -->
             </template>
 
           </template>

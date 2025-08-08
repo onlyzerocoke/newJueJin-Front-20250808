@@ -19,14 +19,15 @@
           </section>
 
           <article class="iconContent" v-for="(item, index) in iconArr" :key=index>
-            <i :class="item.defaultName"></i>
+            <i :class="currentIndex == index ? item.activeName : item.defaultName"
+              @mouseenter="ifEnterIcon(true, index)" @mouseleave="ifEnterIcon(false, index)"></i>
           </article>
         </div>
       </div>
       <!-- 文章内容 -->
       <div class="paperContainer">
         <article class="paperContent">
-          <h1>Flutter 使用 AI Cursor 快速完成一个图表封装【提效】</h1>
+          <h1>Flutter 使用 AI Cursor 快速完成一个图表封装【提效】装【提效】装【提效】装【提效】装【提效】装【提效】装【提效】装【提效】</h1>
         </article>
 
         <article class="infoContainer">
@@ -97,15 +98,22 @@
 
 <script lang="ts" setup>
 import { useRoute } from 'vue-router'
-import { ref, onMounted, onBeforeUnmount } from 'vue';
+import { ref, Ref, onMounted, onBeforeUnmount } from 'vue';
 const route = useRoute()
 const paperId = route.params.id
 const showElement = ref(false);
 type typeIcon = {
-  defaultName: String,
+  defaultName: string,
+  activeName: string
 }
 // 图标名称
-const iconArr: typeIcon[] = [{ 'defaultName': 'icon iconfont icon-dianzan' }, { 'defaultName': 'icon iconfont icon-bg-chat' }, { 'defaultName': 'icon iconfont icon-shoucang-yishoucang' }, { 'defaultName': 'icon iconfont icon-fenxiangyifenxiang' }, { 'defaultName': 'icon iconfont icon-xinfangjubao' }, { 'defaultName': 'icon iconfont icon-saomiao1' }]
+const iconArr: typeIcon[] = [
+  { 'defaultName': 'icon iconfont icon-dianzan', 'activeName': 'icon iconfont icon-dianzan_kuai' },
+  { 'defaultName': 'icon iconfont icon-bg-chat', 'activeName': 'icon iconfont icon-duihua' },
+  { 'defaultName': 'icon iconfont icon-shoucang-yishoucang', 'activeName': 'icon iconfont icon-a-shoucang-yishoucang' },
+  { 'defaultName': 'icon iconfont icon-fenxiangyifenxiang', 'activeName': 'icon iconfont icon-fenxiang' },
+  { 'defaultName': 'icon iconfont icon-xinfangjubao', 'activeName': 'icon iconfont icon-jubao' },
+  { 'defaultName': 'icon iconfont icon-saomiao1', 'activeName': 'icon iconfont icon-saomiao' }]
 const handleScroll = () => {
   showElement.value = window.scrollY >= 200;
 };
@@ -117,6 +125,18 @@ onMounted(() => {
 onBeforeUnmount(() => {
   window.removeEventListener('scroll', handleScroll);
 });
+
+let ifEnter: Ref<boolean> = ref(false);
+let currentIndex: Ref<number> = ref(-1);
+const ifEnterIcon = (flag: boolean, index: number) => {
+
+  ifEnter.value = flag;
+  currentIndex.value = index;
+  if (flag == false) {
+    //移出Icon之后就重置
+    currentIndex.value = -1;
+  }
+}
 </script>
 
 <style lang="scss">
@@ -198,18 +218,21 @@ $defaultWordColor: #666b79;
 
   .main {
     display: flex;
-    align-items: flex-start;
+    justify-content: center;
+    align-items:flex-start ;
+  
     margin-top: 20px !important;
 
     // width: 200px;
+    // padding-left: 200px !important;
     height: 3000px;
     // background-color: red;
-
+    // margin: 0 auto !important;
     .rightPersonInfoContainer {
       @extend .center;
       // width: 200px;
       // height: 100px;
-      background-color: orange;
+      // background-color: orange;
       background-color: white;
       padding: 10px !important;
       // padding-left: 25px !important;
@@ -280,18 +303,18 @@ $defaultWordColor: #666b79;
             font-size: 13px !important;
           }
 
-          .focus{
-            background-color:#1E80FF ;
+          .focus {
+            background-color: #1E80FF;
           }
 
-           .focus:hover{
+          .focus:hover {
             background-color: #1171EE;
-           }
+          }
 
-           .private:hover{
+          .private:hover {
             color: $defautlShallowColor;
             background-color: #E8F2FF;
-           }
+          }
 
         }
       }
@@ -318,16 +341,17 @@ $defaultWordColor: #666b79;
 }
 
 .paperContainer {
+  width: 40%;
   display: flex;
   flex-direction: column;
   padding: 10px !important;
-  // background-color: purple;
   background-color: white;
-  max-width: 1500px !important;
-  margin-right: 20px !important
-  // margin-right: 50px !important;
-
+  // background-color: purple;
+  // max-width: 1500px !important;
+  margin-right: 20px !important // margin-right: 50px !important;
 }
+
+
 
 .infoContainer {
   @extend .start;

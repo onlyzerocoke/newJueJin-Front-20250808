@@ -63,7 +63,7 @@
 
 
           <section class="createCenterContainer" @click="clickcreateCenterFlag" v-if="pcFlag">
-            <el-button text> 创作者中心 </el-button>
+            <el-button text> 创作者中心</el-button>
 
             <div class="createCenterTriangle">
               <section class="triangle"></section>
@@ -71,7 +71,7 @@
           </section>
 
           <section class="createCenterContainer" v-else @mouseenter="clickcreateCenterFlag">
-            <el-button text> 创作者中心 </el-button>
+            <el-button text> 创作者中心</el-button>
 
             <div class="createCenterTriangle">
               <section class="triangle"></section>
@@ -722,6 +722,8 @@ const handleGithubLogin = () => {
     false
   );
 };
+
+
 </script>
 
 
@@ -2483,8 +2485,64 @@ $defaultWordColor: #666b79;
   // background-color: red;
 }
 
-.loginIptContainer{
+.loginIptContainer {
   // background-color: red !important;
   padding: 10px 20px !important;
+}
+
+.triangle:hover {
+  width: 0;
+  height: 0;
+  cursor: pointer;
+  border-left: 0.3rem solid transparent;
+  border-right: 0.3rem solid transparent;
+  border-top: 0.3rem solid red;
+  margin-left: 4px;
+}
+
+
+// .createCenterTriangle:hover .triangle {
+//   transform: rotate(180deg);
+//   transition: transform 0.3s ease;
+// }
+
+/* 鼠标悬停时触发旋转动画 */
+.createCenterTriangle:hover .triangle {
+  animation: rotate180 0.3s forwards;
+}
+
+/* 鼠标离开时触发反转动画 */
+.createCenterTriangle:not(:hover) .triangle {
+  animation: rotateBack 0.3s forwards;
+}
+
+@keyframes rotate180 {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(180deg);
+  }
+}
+
+@keyframes rotateBack {
+  from {
+    transform: rotate(180deg);
+  }
+
+  to {
+    transform: rotate(0deg);
+  }
+}
+
+.createCenterContainer {
+  .el-button:hover {
+    background-color: #1171EE !important;
+  }
+}
+
+.createCenterTriangle:hover {
+  background-color: #1171EE !important;
 }
 </style>
