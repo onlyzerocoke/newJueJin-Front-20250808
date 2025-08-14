@@ -530,6 +530,8 @@ const loginOut = () => {
   if (isConfirmed) {
     piniaToken.value = "";
     piniaIfLogin.value = false;
+    piniaAvatar.value = '';
+    piniaUserId.value =0;
   }
   window.location.reload();
 
@@ -662,6 +664,8 @@ const handleLoinOrRegister = async () => {
     if (response.code === 200) {
       // 登录成功
       ElMessage.success("登录成功");
+     
+      
       piniaToken.value = response.data.token;
       piniaIfLogin.value = true;
       piniaAvatar.value = response.data.user.avatar;
@@ -714,6 +718,7 @@ const handleGithubLogin = () => {
         piniaToken.value = token;
         piniaIfLogin.value = true;
         piniaAvatar.value = user.avatar;
+        piniaUserId.value = user.id;
         // open.value = false;
         useHeaderStore.closeModal();
         window.location.reload();

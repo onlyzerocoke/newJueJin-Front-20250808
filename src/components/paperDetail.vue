@@ -26,8 +26,13 @@
       </div>
       <!-- 文章内容 -->
       <div class="paperContainer">
+        <section class="back" @click="backIndex">
+          <i class="icon iconfont icon-xiangzuojiantou"></i>
+        </section>
+
         <article class="paperContent">
-          <h1>Flutter 使用 AI Cursor 快速完成一个图表封装【提效】装【提效】装【提效】装【提效】装【提效】装【提效】装【提效】装【提效】</h1>
+          <h1>Flutter 使用 AI Curs用 AI Curs用 AI Curs用 AI Curs用 AI Curs用 AI Curs用 AI Curs用 AI Curs用 AI Curs用 AI Curs用 AI
+            Curs用 AI Curs用 AI Curs用 AI Curs用 AI Curs</h1>
         </article>
 
         <article class="infoContainer">
@@ -43,6 +48,209 @@
         <article class="paperDeatail">
           <div></div>
         </article>
+
+        <article class="commentContainer">
+          <div class="commentContent">
+            <h3>评论&nbsp;45</h3>
+
+            <div class="imageAndEditorContianer">
+
+              <article class="imageAndEditorContent">
+
+                <section class="userAvatar">
+                  <a-avatar class="userAvatar" :src="piniaAvatar"></a-avatar>
+                </section>
+
+
+                <TinyMce ref="editorRef" v-model="mdlValue.fullText" :toolbar="toolbar" :width="480" :height="100"
+                  :menubar="''" />
+
+              </article>
+
+            </div>
+          </div>
+
+
+
+        </article>
+
+        <article class="btnContainer">
+          <div class="blankBox"></div>
+          <el-button type="primary" class="sendBtn" @click="sendParentComment">发送</el-button>
+        </article>
+
+        <article class="latestAndNewArrContainer">
+
+          <section v-for="(item, index) in latestAndNewArr" :key="index" @click="ifCurrentClick(index)"
+            :class="latestCurrentIndex == index ? 'activeColor' : ''">
+            {{ item }}
+          </section>
+
+        </article>
+
+        <template v-if="loading">
+          <skeleton :loading="loading"></skeleton>
+        </template>
+
+
+        <!-- 用户评论 -->
+        <template v-else-if="commentList.length > 0">
+          <article class="parentCommentContainer">
+
+            <section v-for="(item, index) in commentList" :key="index">
+              <div class="parentCommentContent">
+
+                <section class="vistorAvatar">
+                  <a-avatar class="userAvatar" :src="item.avatar"></a-avatar>
+                </section>
+
+
+                <section class="rightCommentContent">
+
+                  <section class="userInfo">
+                    <article class="nameAndOccupation">
+                      <p class="name">
+                        {{ item.name }}
+                      </p>
+
+                      <p class="occupation" v-if="item.occupation != null">
+                        {{ item.occupation }}
+                      </p>
+                    </article>
+                  </section>
+
+
+                  <p class="comment" v-html="item.content">
+
+                  </p>
+
+
+                  <section class="praiseAndDateContainer">
+                    <p class="date">
+                      {{ timeAgo(item.created_at) }}
+                    </p>
+
+                    <div class="praiseContainer">
+                      <i class="icon iconfont icon-zan1" v-if="item.praiseStatus"></i>
+                      <i class="icon iconfont icon-zan" v-else></i>
+                      <p>{{ item.like_count > 0 ? item.like_count : '点赞' }}</p>
+                    </div>
+
+                    <div class="toPraiseContainer">
+                      <i class="icon iconfont icon-pinglun"></i>
+                      <p>{{ item.children.length > 0 ? item.children.length : '回复' }}</p>
+                    </div>
+                  </section>
+                </section>
+
+
+              </div>
+
+              <div class="childrenCommentContainer">
+                <template v-for="(jtem, index) in item.children">
+                  <article class="childrenCommentContent">
+
+                    <section class="childrenCommentTop">
+                      <section class="sonVistorAvatar">
+                        <a-avatar class="sonUserAvatar" :src="jtem.avatar"></a-avatar>
+                      </section>
+                      <section class="nickName">
+                        <p class="vistorName">{{ jtem.name }}</p>
+                        <p class="authorSymbol" v-if="jtem.user_id == authorid">作者</p>
+                        <p class="symbol">:</p>
+                        <p class="sonComment" v-html="jtem.content">
+
+                        </p>
+                      </section>
+
+
+                    </section>
+
+                    <section class="childrenCommentBottom">
+
+                      <section class="praiseAndDateContainer">
+                        <p class="date">
+                          {{ timeAgo(jtem.created_at) }}
+                        </p>
+
+                        <div class="praiseContainer">
+                          <i class="icon iconfont icon-zan1" v-if="jtem.praiseStatus"></i>
+                           <i class="icon iconfont icon-zan" v-else></i>
+                          <p>{{ jtem.like_count > 0 ? jtem.like_count : '点赞' }}</p>
+                        </div>
+
+                        <div class="toPraiseContainer">
+                          <i class="icon iconfont icon-pinglun"></i>
+                          <p>回复</p>
+                        </div>
+                      </section>
+
+                    </section>
+                  </article>
+
+                  <article class="childrenCommentContent" v-for="(ktem, index) in jtem.son">
+
+                    <section class="childrenCommentTop">
+                      <section class="sonVistorAvatar">
+                        <a-avatar class="sonUserAvatar" :src="ktem.avatar"></a-avatar>
+                      </section>
+                      <section class="nickName">
+                        <p class="vistorName">{{ ktem.name }}</p>
+                        <p class="authorSymbol" v-if="ktem.user_id == authorid">作者</p>
+                        <p>回复</p>
+                        <p>{{ jtem.name }}</p>
+                        <p class="symbol">:</p>
+                        <p class="sonComment" v-html="ktem.content">
+
+                        </p>
+                      </section>
+
+
+                    </section>
+
+                    <section class="childrenCommentBottom">
+
+                      <section class="praiseAndDateContainer">
+                        <p class="date">
+                          {{ timeAgo(ktem.created_at) }}
+                        </p>
+
+                        <div class="praiseContainer">
+                          <i class="icon iconfont icon-zan1" v-if="ktem.praiseStatus"></i>
+                          <i class="icon iconfont icon-zan" v-else></i>
+                          <p>{{ ktem.like_count > 0 ? ktem.like_count : '点赞' }}</p>
+                        </div>
+
+                        <div class="toPraiseContainer">
+                          <i class="icon iconfont icon-pinglun"></i>
+                          <p>回复</p>
+                        </div>
+                      </section>
+
+                    </section>
+                  </article>
+                </template>
+
+              </div>
+            </section>
+
+
+            <template v-if="commentList.length == 3">
+              <el-button type="info" plain class="remainCommentBtn" @click="getCommentList(true)">
+                <p class="remainCommentBtnWord">查看全部{{ remainCommentNum }}条评论</p><el-icon class="el-icon--right">
+                  <ArrowDown />
+                </el-icon>
+              </el-button>
+            </template>
+
+
+          </article>
+        </template>
+
+        <!-- 无评论 -->
+        <template v-else>
+          <blankData message="暂无评论数据"></blankData>
+        </template>
 
       </div>
 
@@ -98,10 +306,32 @@
 
 <script lang="ts" setup>
 import { useRoute } from 'vue-router'
-import { ref, Ref, onMounted, onBeforeUnmount } from 'vue';
+import { ref, Ref, onMounted, onBeforeUnmount, reactive } from 'vue';
+import { storeToRefs } from "pinia";
+import type { sendParentParam, getCommentParam } from '../api/type/comment'
+import '@opentiny/fluent-editor/style.css';
+import skeleton from './skeleton.vue';
+import { useRouter } from 'vue-router'
+import TinyMce from './Tinymce/index.vue'
+import {
+  ArrowLeft,
+  ArrowDown
+} from '@element-plus/icons-vue'
+import { useMessage } from '../utils/elementComponents/message'
+import useMainStore from '../Store/index'
+import { reqParentComment, reqCommentList } from '../api/api';
+import { toNumber } from '@vue/shared';
+import { forceLoginOut } from '../utils/repeatHooks'
+import blankData from '../components/blankData.vue'
+const { userStore } = useMainStore();
+const { piniaUserId, piniaAvatar,piniaIfLogin } = storeToRefs(userStore);
+
 const route = useRoute()
-const paperId = route.params.id
+let paperId = route.params.id as string;
 const showElement = ref(false);
+
+
+
 type typeIcon = {
   defaultName: string,
   activeName: string
@@ -118,7 +348,12 @@ const handleScroll = () => {
   showElement.value = window.scrollY >= 200;
 };
 
+
+
+
+
 onMounted(() => {
+  getCommentList(false)
   window.addEventListener('scroll', handleScroll);
 });
 
@@ -137,6 +372,116 @@ const ifEnterIcon = (flag: boolean, index: number) => {
     currentIndex.value = -1;
   }
 }
+
+const toolbar = [
+  'image emoticons',
+
+]
+
+const mdlValue = reactive({
+  fullText: ''
+})
+
+const latestAndNewArr: string[] = ['最热', '最新']
+let latestCurrentIndex: Ref<number> = ref(0);
+const ifCurrentClick = (index: number) => {
+  latestCurrentIndex.value = index;
+  getCommentList(false);
+}
+
+// 发送父级评论
+const editorRef = ref()
+
+const sendParentComment = async () => {
+  const contnent = editorRef.value.getContent()
+  const data: sendParentParam = {
+    articleId: paperId,
+    parentId: 0,
+    userId: piniaUserId.value,
+    content: contnent
+  }
+
+
+  const res = await reqParentComment(data)
+
+  if (res.code == 200) {
+    useMessage('发送成功', 'success')
+    // 清空富文本
+    editorRef.value.setContent('')
+    mdlValue.fullText = ''
+    latestCurrentIndex.value = 1;
+    getCommentList(false);
+
+  } else if (res.code == 401) {
+    forceLoginOut();
+  } else {
+    useMessage(res.message, 'warning')
+  }
+
+
+}
+
+let ifClckAllComment: Ref<boolean> = ref(false);
+// 评论数组
+let commentList: Ref<any[]> = ref([])
+// 剩余评论总条数
+let remainCommentNum: Ref<number> = ref(0)
+// 骨架屏状态
+let loading: Ref<boolean> = ref(true);
+// 获取评论
+const getCommentList = async (flag: boolean) => {
+  ifClckAllComment.value = flag;
+
+  let dataNum = ifClckAllComment.value ? 0 : 3;
+  //  console.log(dataNum);
+  commentList.value = [];
+  const data: getCommentParam = {
+    articleId: paperId,
+    dataNum,
+    type: latestCurrentIndex.value,
+    ifLogin:piniaIfLogin.value,
+    userId:piniaUserId.value
+  }
+
+
+  const res = await reqCommentList(data);
+  if (res.code == 200) {
+    commentList.value = res.data;
+    remainCommentNum.value = res.totalCommentNum - 3;
+    loading.value = false;
+  }
+
+}
+
+// 统计日期是几周前 几月前 
+const timeAgo = (createdAt: string) => {
+  const now = new Date().getTime();
+  const past = new Date(createdAt).getTime();
+  const diff = Math.floor((now - past) / 1000); // 秒差
+
+  if (diff < 60) return `${diff} 秒前`;
+  if (diff < 3600) return `${Math.floor(diff / 60)} 分钟前`;
+  if (diff < 86400) return `${Math.floor(diff / 3600)} 小时前`;
+  if (diff < 604800) return `${Math.floor(diff / 86400)} 天前`;
+  if (diff < 2592000) return `${Math.floor(diff / 604800)} 周前`;
+  if (diff < 31536000) return `${Math.floor(diff / 2592000)} 月前`;
+  return `${Math.floor(diff / 31536000)} 年前`;
+}
+
+
+
+// 获取文章内容
+let authorid: Ref<number> = ref(0);
+
+  
+const router = useRouter()
+// 返回首页
+const backIndex = ()=>{
+router.push(`/`)
+}
+
+
+
 </script>
 
 <style lang="scss">
@@ -219,13 +564,14 @@ $defaultWordColor: #666b79;
   .main {
     display: flex;
     justify-content: center;
-    align-items:flex-start ;
-  
+    align-items: flex-start;
+
     margin-top: 20px !important;
 
     // width: 200px;
     // padding-left: 200px !important;
     height: 3000px;
+
     // background-color: red;
     // margin: 0 auto !important;
     .rightPersonInfoContainer {
@@ -277,6 +623,7 @@ $defaultWordColor: #666b79;
 
           .paperNumAndFansItem {
             margin-right: 50px !important;
+            cursor: pointer;
 
             // background-color: yellow;
             p:nth-child(1) {
@@ -341,15 +688,17 @@ $defaultWordColor: #666b79;
 }
 
 .paperContainer {
-  width: 40%;
+  width: 600px !important;
   display: flex;
   flex-direction: column;
   padding: 10px !important;
   background-color: white;
   // background-color: purple;
   // max-width: 1500px !important;
-  margin-right: 20px !important // margin-right: 50px !important;
+  margin-right: 20px !important; // margin-right: 50px !important;
+
 }
+
 
 
 
@@ -376,6 +725,242 @@ $defaultWordColor: #666b79;
 
   .view {
     color: #8A919F;
+  }
+}
+
+.commentContainer {
+  @extend .start;
+
+  .commentContent {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 10px;
+
+    .userAvatar {
+      margin-right: 10px !important;
+    }
+
+    .imageAndEditorContent {
+      display: flex;
+      justify-content: flex-start;
+      margin-top: 10px !important;
+      // background-color: yellow;
+      height: 50%;
+
+
+    }
+  }
+
+
+}
+
+.sendBtn {
+  width: 10%;
+
+}
+
+.btnContainer {
+  @extend .between;
+  margin-top: 10px !important;
+
+  .blankBox {
+    width: 10px;
+    height: 10px;
+    // background-color: red !important;
+  }
+}
+
+.latestAndNewArrContainer {
+  @extend .start;
+  text-align: center;
+  cursor: pointer;
+
+  section:nth-child(1) {
+    padding-right: 10px !important;
+    border-right: 2px solid #E4E6EB;
+  }
+
+  section:nth-child(2) {
+    padding-left: 10px !important;
+
+  }
+}
+
+.activeColor {
+  color: $defautlShallowColor;
+}
+
+.parentCommentContainer {
+  display: flex;
+  flex-direction: column;
+  margin-top: 15px !important;
+  margin-left: 10px !important;
+
+  .parentCommentContent {
+    display: flex;
+    align-items: flex-start;
+    margin-bottom: 25px !important;
+
+    .vistorAvatar {
+      margin-right: 20px !important;
+      // background-color: yellow;
+    }
+
+    .rightCommentContent {
+      display: flex;
+      flex-direction: column;
+      // background-color: purple;
+
+      .userInfo {
+        .nameAndOccupation {
+          @extend .start;
+
+          .name {
+            color: #515767;
+            margin-right: 15px !important;
+          }
+
+          .occupation {
+            color: #8A919F;
+            font-size: 13px;
+          }
+        }
+      }
+
+      .comment {
+        margin: 15px 0px !important;
+      }
+
+      .praiseAndDateContainer {
+        @extend .start;
+        color: #8A919F;
+        font-size: 14px;
+
+        .praiseContainer {
+          @extend .center;
+          margin-right: 20px !important;
+          margin-left: 20px !important;
+          text-align: center;
+
+          // background-color: yellow;
+          .icon {
+            margin-right: 5px !important;
+            cursor: pointer;
+          }
+
+          p {
+            margin-top: -2px !important;
+          }
+        }
+
+        .toPraiseContainer {
+          @extend .center;
+          text-align: center;
+
+          //  background-color: purple;
+          .icon {
+            margin-right: 5px !important;
+            cursor: pointer;
+          }
+
+          p {
+            margin-top: -3px !important;
+          }
+        }
+      }
+
+
+    }
+  }
+}
+
+.remainCommentBtn {
+  border: none !important;
+  cursor: pointer;
+
+}
+
+.remainCommentBtn:hover {
+  background-color: #F2F3F5 !important;
+  color: #515767 !important;
+}
+
+
+
+.remainCommentBtnWord {
+  margin-right: 10px !important;
+}
+
+.childrenCommentContent {
+  margin-left: 45px !important;
+  margin-bottom: 15px !important;
+
+  .childrenCommentTop {
+    @extend .start;
+  }
+
+  .childrenCommentBottom {
+    margin-left: 40px !important
+  }
+
+  .nickName {
+    @extend .start;
+    margin: 0px 8px !important;
+
+    .vistorName {
+      color: #5E616C;
+    }
+
+    .sonComment {
+      font-size: 15px;
+    }
+
+    .authorSymbol {
+      background-color: #EAF2FF;
+      font-size: 12px;
+      padding: 0px 5px !important;
+      color: #1E80FF;
+      margin: 0px 5px !important;
+    }
+  }
+
+  .praiseAndDateContainer {
+    margin-top: 10px !important;
+    color: #8A919F;
+    font-size: 13px;
+
+    .icon {
+      margin-right: 5px !important;
+      cursor: pointer;
+    }
+
+    @extend .start;
+
+    .praiseContainer {
+      @extend .start;
+      margin: 0px 15px !important;
+
+    }
+
+    .toPraiseContainer {
+      @extend .start;
+    }
+  }
+}
+
+.comment {
+  img {
+    max-width: 80px !important;
+    height: auto !important;
+  }
+}
+
+.back{
+    margin-bottom: 15px !important;
+    cursor: pointer;
+  .icon{
+    font-size: 20px;
+  
   }
 }
 </style>

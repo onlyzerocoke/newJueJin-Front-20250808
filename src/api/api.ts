@@ -3,19 +3,14 @@
 import request from '../utils/request'
 
 import type {
-
-    loginFormData,
-
-    loginResponseData,
-
     userInfoReponseData,
-
     userPhoneData,
     userPhoneReponseData,
     userLoginOrRegisterData
 } from './type/user'
 
 import type { articleListParam,articleListId } from './type/article'
+import type {sendParentParam,getCommentParam} from './type/comment'
 //项目用户相关的请求地址
 
 enum API {
@@ -23,7 +18,9 @@ enum API {
     USERINFO_URL = '/admin/acl/index/info',
     MESSAGE_URL = '/sendSmsCode',
     ARTICLELIST_URL = '/article/getArticleList',
-    PRAISEPAPER_URL='article/addPraise'
+    PRAISEPAPER_URL='/article/addPraise',//点赞
+    PARENTCOMMENT_URL = '/comment/addComment',//发表评论
+    GETCOMMENT_URL = '/comment/getCommentList'
 }
 
 
@@ -47,4 +44,14 @@ export const reqArticleList = (data: articleListParam) =>
 // 点赞文章
 export const reqPraisePaper = (data: articleListId) =>{
     return request.post<any,any>(API.PRAISEPAPER_URL,data)
+}
+
+// 发表父级评论
+export const reqParentComment= (data:sendParentParam)=>{
+    return request.post<any,any>(API.PARENTCOMMENT_URL,data);
+}
+
+// 获取评论列表
+export const reqCommentList = (data:getCommentParam)=>{
+    return request.post<any,any>(API.GETCOMMENT_URL,data)
 }
