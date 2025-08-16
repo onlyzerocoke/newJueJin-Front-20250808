@@ -10,7 +10,7 @@ import type {
 } from './type/user'
 
 import type { articleListParam,articleListId } from './type/article'
-import type {sendParentParam,getCommentParam} from './type/comment'
+import type {sendParentParam,getCommentParam,addCommentPraiseParam,replyCommentParam} from './type/comment'
 //项目用户相关的请求地址
 
 enum API {
@@ -20,7 +20,9 @@ enum API {
     ARTICLELIST_URL = '/article/getArticleList',
     PRAISEPAPER_URL='/article/addPraise',//点赞
     PARENTCOMMENT_URL = '/comment/addComment',//发表评论
-    GETCOMMENT_URL = '/comment/getCommentList'
+    GETCOMMENT_URL = '/comment/getCommentList',//获取评论列表
+    COMMENTPRAISE_URL='/comment/addCommentPraise',//点赞评论
+    REPLYCOMMENT_URL = '/comment/replyComment'//回复评论
 }
 
 
@@ -54,4 +56,15 @@ export const reqParentComment= (data:sendParentParam)=>{
 // 获取评论列表
 export const reqCommentList = (data:getCommentParam)=>{
     return request.post<any,any>(API.GETCOMMENT_URL,data)
+}
+
+
+//点赞评论
+export const reqPraiseComment = (data:addCommentPraiseParam)=>{
+    return request.post<any,any>(API.COMMENTPRAISE_URL,data)
+}
+
+// 回复评论
+export const reqReplyComment = (data:replyCommentParam)=>{
+    return request.post<any,any>(API.REPLYCOMMENT_URL,data);
 }

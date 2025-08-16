@@ -51,19 +51,32 @@
 
         <article class="commentContainer">
           <div class="commentContent">
-            <h3>评论&nbsp;45</h3>
+            <h3>评论&nbsp;{{ totalCommentNum }}</h3>
 
             <div class="imageAndEditorContianer">
 
               <article class="imageAndEditorContent">
 
-                <section class="userAvatar">
+                <section class="userAvatar" v-if="piniaIfLogin">
                   <a-avatar class="userAvatar" :src="piniaAvatar"></a-avatar>
+                </section>
+
+                <section class="userAvatar" v-else>
+                  <a-avatar class="userAvatar"
+                    src="https://i.postimg.cc/sXjP3kFs/a4fa5161369727154bc3a7d1c52bb9c0.png"></a-avatar>
                 </section>
 
 
                 <TinyMce ref="editorRef" v-model="mdlValue.fullText" :toolbar="toolbar" :width="480" :height="100"
-                  :menubar="''" />
+                  :menubar="''" v-if="piniaIfLogin" />
+
+                <div class="fakeEditorContainer" v-else>
+                  <article class="loginBtnContainer">
+                    <el-button type="primary" class="loginBtn" @click="open = true">登录&nbsp;|&nbsp;注册
+                    </el-button>
+                    <p>即可发布评论!</p>
+                  </article>
+                </div>
 
               </article>
 
@@ -76,7 +89,7 @@
 
         <article class="btnContainer">
           <div class="blankBox"></div>
-          <el-button type="primary" class="sendBtn" @click="sendParentComment">发送</el-button>
+          <el-button type="primary" class="sendBtn" @click="sendParentComment" v-if="piniaIfLogin">发送</el-button>
         </article>
 
         <article class="latestAndNewArrContainer">
@@ -126,20 +139,48 @@
 
 
                   <section class="praiseAndDateContainer">
-                    <p class="date">
-                      {{ timeAgo(item.created_at) }}
-                    </p>
+                    <section class="userReply">
+                      <p class="date">
+                        {{ timeAgo(item.created_at) }}
+                      </p>
 
-                    <div class="praiseContainer">
-                      <i class="icon iconfont icon-zan1" v-if="item.praiseStatus"></i>
-                      <i class="icon iconfont icon-zan" v-else></i>
-                      <p>{{ item.like_count > 0 ? item.like_count : '点赞' }}</p>
+                      <div class="praiseContainer">
+                        <i class="icon iconfont icon-zan1" v-if="item.praiseStatus" @click="commentPraise(item.id)"></i>
+                        <i class="icon iconfont icon-zan" v-else @click="commentPraise(item.id)"></i>
+                        <p>{{ item.like_count > 0 ? item.like_count : '点赞' }}</p>
+                      </div>
+
+                      <!-- 新增内容--回复父评论 -->
+                      <div class="toPraiseContainer" v-if="replyingCommentId === item.id && piniaIfLogin">
+                        <i class="icon iconfont icon-pinglunshixin"></i>
+                        <p class="cancelReplyWord" @click="replyingCommentId = null">取消回复</p>
+                      </div>
+
+                      <!-- 新增内容 item要变为ktem或jtem-->
+                      <div class="toPraiseContainer" @click="showReplyEditor(item.id)" v-else>
+                        <i class="icon iconfont icon-pinglun"></i>
+                        <p>{{ item.children.length > 0 ? item.children.length : '回复' }}</p>
+                      </div>
+
+
+                    </section>
+
+
+                    <!-- 新增内容 -->
+                    <!-- 富文本编辑器（只在当前回复的评论下显示） -->
+                    <div v-if="replyingCommentId === item.id && piniaIfLogin" class="replyEditor">
+                      <TinyMce v-model="replyContentMap[item.id]" :toolbar="toolbar" :width="480"
+                        @input="(val) => replyContentMap[item.id] = val" :height="100" :menubar="''" />
+
+                      <section class="replyBtnContainer">
+                        <div class="blankBox">
+
+                        </div>
+                        <el-button type="primary" size="small" @click="sendReply(item.id, 0, item.name, item.id)"
+                          class="replyBtn">发送</el-button>
+                      </section>
                     </div>
 
-                    <div class="toPraiseContainer">
-                      <i class="icon iconfont icon-pinglun"></i>
-                      <p>{{ item.children.length > 0 ? item.children.length : '回复' }}</p>
-                    </div>
                   </section>
                 </section>
 
@@ -157,6 +198,7 @@
                       <section class="nickName">
                         <p class="vistorName">{{ jtem.name }}</p>
                         <p class="authorSymbol" v-if="jtem.user_id == authorid">作者</p>
+                        <p v-if="jtem.type==1">回复{{ jtem.replyname }}</p>
                         <p class="symbol">:</p>
                         <p class="sonComment" v-html="jtem.content">
 
@@ -174,21 +216,46 @@
                         </p>
 
                         <div class="praiseContainer">
-                          <i class="icon iconfont icon-zan1" v-if="jtem.praiseStatus"></i>
-                           <i class="icon iconfont icon-zan" v-else></i>
+                          <i class="icon iconfont icon-zan1" v-if="jtem.praiseStatus"
+                            @click="commentPraise(jtem.id)"></i>
+                          <i class="icon iconfont icon-zan" v-else @click="commentPraise(jtem.id)"></i>
                           <p>{{ jtem.like_count > 0 ? jtem.like_count : '点赞' }}</p>
                         </div>
 
-                        <div class="toPraiseContainer">
+                        <!-- 新增内容--回复子评论 -->
+                        <div class="toPraiseContainer" v-if="replyingCommentId === jtem.id && piniaIfLogin">
+                          <i class="icon iconfont icon-pinglunshixin"></i>
+                          <p class="cancelReplyWord" @click="replyingCommentId = null">取消回复</p>
+                        </div>
+
+
+                        <!-- 新增内容 item要变为ktem或jtem-->
+                        <div class="toPraiseContainer" @click="showReplyEditor(jtem.id)" v-else>
                           <i class="icon iconfont icon-pinglun"></i>
                           <p>回复</p>
                         </div>
+
                       </section>
 
+                      <!-- 新增内容 -->
+                      <!-- 富文本编辑器（只在当前回复的评论下显示） -->
+                      <div v-if="replyingCommentId === jtem.id && piniaIfLogin" class="replyEditor">
+                        <TinyMce v-model="replyContentMap[jtem.id]" :toolbar="toolbar" :width="480" :height="100"
+                          :menubar="''" @input="(val) => replyContentMap[jtem.id] = val" />
+
+                        <section class="replyBtnContainer">
+                          <div class="blankBox">
+
+                          </div>
+                          <el-button type="primary" size="small" @click="sendReply(jtem.id, 1, jtem.name, item.id)"
+                            class="replyBtn">发送</el-button>
+                          <!-- <p>{{ jtem.name }}</p> -->
+                        </section>
+                      </div>
                     </section>
                   </article>
 
-                  <article class="childrenCommentContent" v-for="(ktem, index) in jtem.son">
+                  <!-- <article class="childrenCommentContent" v-for="(ktem, index) in jtem.son">
 
                     <section class="childrenCommentTop">
                       <section class="sonVistorAvatar">
@@ -198,7 +265,7 @@
                         <p class="vistorName">{{ ktem.name }}</p>
                         <p class="authorSymbol" v-if="ktem.user_id == authorid">作者</p>
                         <p>回复</p>
-                        <p>{{ jtem.name }}</p>
+                        <p>{{ ktem.replyname }}</p>
                         <p class="symbol">:</p>
                         <p class="sonComment" v-html="ktem.content">
 
@@ -216,19 +283,43 @@
                         </p>
 
                         <div class="praiseContainer">
-                          <i class="icon iconfont icon-zan1" v-if="ktem.praiseStatus"></i>
-                          <i class="icon iconfont icon-zan" v-else></i>
+                          <i class="icon iconfont icon-zan1" v-if="ktem.praiseStatus"
+                            @click="commentPraise(ktem.id)"></i>
+                          <i class="icon iconfont icon-zan" v-else @click="commentPraise(ktem.id)"></i>
                           <p>{{ ktem.like_count > 0 ? ktem.like_count : '点赞' }}</p>
                         </div>
 
-                        <div class="toPraiseContainer">
+                        新增内容--回复子评论
+                        <div class="toPraiseContainer" v-if="replyingCommentId === ktem.id && piniaIfLogin">
+                          <i class="icon iconfont icon-pinglunshixin"></i>
+                          <p class="cancelReplyWord" @click="replyingCommentId = null">取消回复</p>
+                        </div>
+
+
+                        新增内容 item要变为ktem或jtem
+                        <div class="toPraiseContainer" @click="showReplyEditor(ktem.id)" v-else>
                           <i class="icon iconfont icon-pinglun"></i>
                           <p>回复</p>
                         </div>
+
                       </section>
+                      新增内容
+                      富文本编辑器（只在当前回复的评论下显示）
+                      <div v-if="replyingCommentId === ktem.id && piniaIfLogin" class="replyEditor">
+                        <TinyMce v-model="replyContentMap[ktem.id]" :toolbar="toolbar" :width="480" :height="100"
+                          :menubar="''" @input="(val) => replyContentMap[ktem.id] = val" />
+
+                        <section class="replyBtnContainer">
+                          <div class="blankBox">
+
+                          </div>
+                          <el-button type="primary" size="small" @click="sendReply(ktem.id, 1, ktem.name, item.id)"
+                            class="replyBtn">发送</el-button>
+                        </section>
+                      </div>
 
                     </section>
-                  </article>
+                  </article> -->
                 </template>
 
               </div>
@@ -308,24 +399,22 @@
 import { useRoute } from 'vue-router'
 import { ref, Ref, onMounted, onBeforeUnmount, reactive } from 'vue';
 import { storeToRefs } from "pinia";
-import type { sendParentParam, getCommentParam } from '../api/type/comment'
+import type { sendParentParam, getCommentParam, addCommentPraiseParam, replyCommentParam } from '../api/type/comment'
 import '@opentiny/fluent-editor/style.css';
 import skeleton from './skeleton.vue';
 import { useRouter } from 'vue-router'
 import TinyMce from './Tinymce/index.vue'
 import {
-  ArrowLeft,
   ArrowDown
 } from '@element-plus/icons-vue'
 import { useMessage } from '../utils/elementComponents/message'
 import useMainStore from '../Store/index'
-import { reqParentComment, reqCommentList } from '../api/api';
-import { toNumber } from '@vue/shared';
+import { reqParentComment, reqCommentList, reqPraiseComment, reqReplyComment } from '../api/api';
 import { forceLoginOut } from '../utils/repeatHooks'
 import blankData from '../components/blankData.vue'
-const { userStore } = useMainStore();
-const { piniaUserId, piniaAvatar,piniaIfLogin } = storeToRefs(userStore);
-
+const { userStore, useHeaderStore } = useMainStore();
+const { piniaUserId, piniaAvatar, piniaIfLogin } = storeToRefs(userStore);
+let { open } = storeToRefs(useHeaderStore);
 const route = useRoute()
 let paperId = route.params.id as string;
 const showElement = ref(false);
@@ -428,6 +517,9 @@ let commentList: Ref<any[]> = ref([])
 let remainCommentNum: Ref<number> = ref(0)
 // 骨架屏状态
 let loading: Ref<boolean> = ref(true);
+
+// 总评论条数
+let totalCommentNum: Ref<number> = ref(0);
 // 获取评论
 const getCommentList = async (flag: boolean) => {
   ifClckAllComment.value = flag;
@@ -439,19 +531,85 @@ const getCommentList = async (flag: boolean) => {
     articleId: paperId,
     dataNum,
     type: latestCurrentIndex.value,
-    ifLogin:piniaIfLogin.value,
-    userId:piniaUserId.value
+    ifLogin: piniaIfLogin.value,
+    userId: piniaUserId.value
   }
 
 
   const res = await reqCommentList(data);
   if (res.code == 200) {
     commentList.value = res.data;
+    totalCommentNum.value = res.totalCommentNum;
     remainCommentNum.value = res.totalCommentNum - 3;
     loading.value = false;
   }
 
 }
+
+interface CommentItem {
+  id: number
+  article_id: number
+  user_id: number
+  parent_id: number
+  content: string
+  like_count: number
+  praiseStatus?: boolean
+  avatar?: string
+  name?: string
+  occupation?: string
+  created_at?: string
+  children?: CommentItem[]
+  son?: CommentItem[]
+}
+
+
+//评论点赞
+const commentPraise = async (commentId: string) => {
+  const data: addCommentPraiseParam = {
+    userId: piniaUserId.value,
+    commentId,
+  }
+
+  const res = await reqPraiseComment(data);
+
+  if (res.code == 400) {
+    open.value = true;
+  } else if (res.code == 200) {
+    // 调用
+    const { commentId, praiseStatus, praiseNum } = res.data // 你的后端返回数据
+    updateCommentPraise(commentList.value, commentId, praiseStatus, praiseNum)
+  } else if (res.code == 401) {
+    forceLoginOut();
+  }
+}
+
+// 递归实时渲染父子孙评论的点赞数量和状态
+const updateCommentPraise = (commentList: any[], targetId: number, praiseStatus: boolean, praiseNum: number) => {
+  for (let comment of commentList) {
+    if (comment.id === targetId) {
+      // 找到目标评论，更新数据
+      comment.like_count = praiseNum
+      comment.praiseStatus = praiseStatus
+      return true // 找到了就返回
+    }
+
+    // 如果有 children 就递归
+    if (comment.children && comment.children.length > 0) {
+      if (updateCommentPraise(comment.children, targetId, praiseStatus, praiseNum)) {
+        return true
+      }
+    }
+
+    // 如果有 son 就递归
+    if (comment.son && comment.son.length > 0) {
+      if (updateCommentPraise(comment.son, targetId, praiseStatus, praiseNum)) {
+        return true
+      }
+    }
+  }
+  return false
+}
+
 
 // 统计日期是几周前 几月前 
 const timeAgo = (createdAt: string) => {
@@ -470,14 +628,62 @@ const timeAgo = (createdAt: string) => {
 
 
 
+
+// 回复父 子 孙评论
+const replyingCommentId = ref<number | null>(null)
+
+// 点击“回复”按钮
+const showReplyEditor = (commentId: number) => {
+  if (!piniaIfLogin.value) {
+    open.value = true;
+    return;
+  }
+  // 如果点的是同一条评论，就切换显示/隐藏
+  replyingCommentId.value = replyingCommentId.value === commentId ? null : commentId
+}
+
+const replyContentMap = reactive<Record<number, string>>({})
+// 发送回复
+const sendReply = async (replyid: number, type: number, replyName: string, parentId: number,) => {
+
+  // const content = replyEditorRef.value.getContent()
+    const content = replyContentMap[replyid] || ''
+  console.log('content', content)
+  const data: replyCommentParam = {
+    parentId,
+    userId: piniaUserId.value,
+    articleId: paperId,
+    content,
+    replyName,
+    type,
+  }
+  let res: any = await reqReplyComment(data);
+  if (res.code == 200) {
+    useMessage(res.message, 'success');
+    getCommentList(true);
+  } else if (res.code == 401) {
+
+    forceLoginOut();
+  }
+
+  else {
+    useMessage(res.message, 'error');
+    getCommentList(true);
+  }
+  replyContentMap[parentId] = ''
+  replyingCommentId.value = null
+}
 // 获取文章内容
 let authorid: Ref<number> = ref(0);
 
-  
+
+
+
+
 const router = useRouter()
 // 返回首页
-const backIndex = ()=>{
-router.push(`/`)
+const backIndex = () => {
+  router.push(`/`)
 }
 
 
@@ -832,9 +1038,15 @@ $defaultWordColor: #666b79;
       }
 
       .praiseAndDateContainer {
-        @extend .start;
+        // @extend .start;
+        display: flex;
+        flex-direction: column;
         color: #8A919F;
         font-size: 14px;
+
+        .userReply {
+          @extend .start;
+        }
 
         .praiseContainer {
           @extend .center;
@@ -955,12 +1167,64 @@ $defaultWordColor: #666b79;
   }
 }
 
-.back{
-    margin-bottom: 15px !important;
-    cursor: pointer;
-  .icon{
+.back {
+  margin-bottom: 15px !important;
+  cursor: pointer;
+
+  .icon {
     font-size: 20px;
-  
+
+  }
+}
+
+.fakeEditorContainer {
+  @extend .center;
+  width: 500px;
+  height: 100px;
+  border-radius: 5px;
+  background-color: #F2F3F5;
+
+  .loginBtnContainer {
+    @extend .start;
+
+    .loginBtn {
+      background-color: #f4f9ff !important;
+      color: white !important;
+      padding: 12px 10px !important;
+      background-color: #1E80FF !important;
+      margin-right: 10px !important;
+    }
+
+  }
+
+}
+
+.replyEditor {
+  margin-top: 10px !important;
+}
+
+.cancelReplyWord {
+  cursor: pointer;
+  color: #1E80FF;
+}
+
+.replyBtnContainer {
+  @extend .between;
+
+  .blankBox {
+    width: 50px;
+    height: 50px;
+  }
+
+  .replyBtn {
+    padding: 10px !important;
+  }
+}
+
+.parentCommentContainer {
+  img {
+    max-width: 80px !important;
+    height: auto !important;
   }
 }
 </style>
