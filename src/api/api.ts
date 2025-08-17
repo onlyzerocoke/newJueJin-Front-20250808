@@ -22,7 +22,8 @@ enum API {
     PARENTCOMMENT_URL = '/comment/addComment',//发表评论
     GETCOMMENT_URL = '/comment/getCommentList',//获取评论列表
     COMMENTPRAISE_URL='/comment/addCommentPraise',//点赞评论
-    REPLYCOMMENT_URL = '/comment/replyComment'//回复评论
+    REPLYCOMMENT_URL = '/comment/replyComment',//回复评论
+    UPLOADAVATAR_URL = '/upload/uploadImage'//上传图片
 }
 
 
@@ -67,4 +68,9 @@ export const reqPraiseComment = (data:addCommentPraiseParam)=>{
 // 回复评论
 export const reqReplyComment = (data:replyCommentParam)=>{
     return request.post<any,any>(API.REPLYCOMMENT_URL,data);
+}
+
+//上传图片
+export const reqUploadAvatar = ()=>{
+    return request.post<any,any>(API.UPLOADAVATAR_URL);
 }

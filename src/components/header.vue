@@ -63,7 +63,7 @@
 
 
           <section class="createCenterContainer" @click="clickcreateCenterFlag" v-if="pcFlag">
-            <el-button text> 创作者中心</el-button>
+            <el-button text @click="ifHasLogin()"> 创作者中心</el-button>
 
             <div class="createCenterTriangle">
               <section class="triangle"></section>
@@ -71,7 +71,7 @@
           </section>
 
           <section class="createCenterContainer" v-else @mouseenter="clickcreateCenterFlag">
-            <el-button text> 创作者中心</el-button>
+            <el-button text @click="ifHasLogin()"> 创作者中心</el-button>
 
             <div class="createCenterTriangle">
               <section class="triangle"></section>
@@ -81,11 +81,12 @@
 
 
 
-          <section class="createCenterContent" v-if="createCenterFlag" @mouseleave="clickcreateCenterFlag">
+          <section class="createCenterContent" v-if="createCenterFlag && piniaIfLogin"
+            @mouseleave="clickcreateCenterFlag">
 
             <section class="createCenterContentBox">
               <article class="createCenterContentBoxTop">
-                <div class="createCenterContentItem">
+                <div class="createCenterContentItem" @click="toEdit">
                   <div class="imgContainer">
                     <img src="../image/header/writePaper.svg" alt="">
                   </div>
@@ -374,6 +375,7 @@ import {
 } from "../api/type/user";
 import { storeToRefs } from "pinia";
 import useMainStore from "../Store";
+import { useRouter } from 'vue-router'
 import QRCode from "qrcode";
 let phone: Ref<string> = ref("");
 
@@ -427,7 +429,9 @@ const handleAvatarList = (event: any) => {
 // createCenter列表
 let createCenterFlag: Ref<boolean> = ref(false);
 const clickcreateCenterFlag = (event: any) => {
+
   event.stopPropagation();
+
   createCenterFlag.value = !createCenterFlag.value;
 };
 
@@ -531,7 +535,7 @@ const loginOut = () => {
     piniaToken.value = "";
     piniaIfLogin.value = false;
     piniaAvatar.value = '';
-    piniaUserId.value =0;
+    piniaUserId.value = 0;
   }
   window.location.reload();
 
@@ -664,8 +668,8 @@ const handleLoinOrRegister = async () => {
     if (response.code === 200) {
       // 登录成功
       ElMessage.success("登录成功");
-     
-      
+
+
       piniaToken.value = response.data.token;
       piniaIfLogin.value = true;
       piniaAvatar.value = response.data.user.avatar;
@@ -729,6 +733,21 @@ const handleGithubLogin = () => {
 };
 
 
+// 跳转到文章编辑页面
+const router = useRouter();
+const toEdit = () => {
+  router.push('/edit');
+}
+
+const ifHasLogin = () => {
+
+
+  if (!piniaIfLogin.value) {
+    open.value = true;
+
+  }
+}
+
 </script>
 
 
@@ -786,14 +805,14 @@ $defaultWordColor: #666b79;
   user-select: none;
   @extend .center;
 
-  background-color: white;
+  background-color: white !important;
   //  background-color: red;
   padding: 5px 5px !important;
 
   .headerContent {
     @extend .between;
 
-    // background-color: yellow;
+    background-color: white !important;
     .headerContentLeftBox {
       @extend .between;
       // background-color: aqua;
@@ -1073,8 +1092,8 @@ $defaultWordColor: #666b79;
         flex-direction: column;
         justify-content: center;
         align-items: center;
-        margin-right: 20px !important;
-
+        margin-right: 10px !important;
+        padding: 10px !important;
         .imgContainer {
           width: 40px;
           height: 40px;
@@ -2549,5 +2568,10 @@ $defaultWordColor: #666b79;
 
 .createCenterTriangle:hover {
   background-color: #1171EE !important;
+}
+
+.createCenterContentItem:hover{
+  background-color: #F7F8FA;
+  padding: 10px !important;
 }
 </style>

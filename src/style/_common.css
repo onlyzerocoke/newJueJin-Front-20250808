@@ -1,0 +1,22 @@
+* {
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+.center {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.between {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.start {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+}

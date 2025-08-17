@@ -11,6 +11,7 @@ import './icon/leftTab/iconfont.css'
 import 'element-plus/dist/index.css'
 import piniaPluginPersistedstate from 'pinia-plugin-persistedstate'
 import { createPinia } from 'pinia';
+
 const app = createApp(App)
 const pinia=createPinia()
 pinia.use(piniaPluginPersistedstate)

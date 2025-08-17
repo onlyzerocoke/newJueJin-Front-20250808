@@ -21,6 +21,10 @@ const tinymceCDN = 'https://fastly.jsdelivr.net/npm/tinymce-all-in-one@4.9.3/tin
 export default {
   name: 'Tinymce',
   props: {
+    placeholder: {
+      type: String,
+      default: '' // 默认中文占位符
+    },
     id: {
       type: String,
       default: function () {
@@ -123,7 +127,7 @@ export default {
     initTinymce() {
       const _this = this
       window.tinymce.init({
-
+        placeholder: this.placeholder,  // ← 使用自定义占位符
         language: this.language,
         selector: `#${this.tinymceId}`,
         height: this.height,

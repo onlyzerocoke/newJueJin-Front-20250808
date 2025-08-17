@@ -26,9 +26,10 @@
       </div>
       <!-- 文章内容 -->
       <div class="paperContainer">
-        <section class="back" @click="backIndex">
+        <!-- <section class="back" @click="backIndex">
           <i class="icon iconfont icon-xiangzuojiantou"></i>
-        </section>
+        </section> -->
+        <Back></Back>
 
         <article class="paperContent">
           <h1>Flutter 使用 AI Curs用 AI Curs用 AI Curs用 AI Curs用 AI Curs用 AI Curs用 AI Curs用 AI Curs用 AI Curs用 AI Curs用 AI
@@ -198,7 +199,7 @@
                       <section class="nickName">
                         <p class="vistorName">{{ jtem.name }}</p>
                         <p class="authorSymbol" v-if="jtem.user_id == authorid">作者</p>
-                        <p v-if="jtem.type==1">回复{{ jtem.replyname }}</p>
+                        <p v-if="jtem.type == 1">回复{{ jtem.replyname }}</p>
                         <p class="symbol">:</p>
                         <p class="sonComment" v-html="jtem.content">
 
@@ -398,6 +399,7 @@
 <script lang="ts" setup>
 import { useRoute } from 'vue-router'
 import { ref, Ref, onMounted, onBeforeUnmount, reactive } from 'vue';
+import Back from '../components/back.vue'
 import { storeToRefs } from "pinia";
 import type { sendParentParam, getCommentParam, addCommentPraiseParam, replyCommentParam } from '../api/type/comment'
 import '@opentiny/fluent-editor/style.css';
@@ -418,8 +420,6 @@ let { open } = storeToRefs(useHeaderStore);
 const route = useRoute()
 let paperId = route.params.id as string;
 const showElement = ref(false);
-
-
 
 type typeIcon = {
   defaultName: string,
@@ -639,6 +639,7 @@ const showReplyEditor = (commentId: number) => {
     return;
   }
   // 如果点的是同一条评论，就切换显示/隐藏
+  //replyingCommentId.value === commentId说明点击了当前评论的富文本编辑器已经打开
   replyingCommentId.value = replyingCommentId.value === commentId ? null : commentId
 }
 
@@ -647,8 +648,8 @@ const replyContentMap = reactive<Record<number, string>>({})
 const sendReply = async (replyid: number, type: number, replyName: string, parentId: number,) => {
 
   // const content = replyEditorRef.value.getContent()
-    const content = replyContentMap[replyid] || ''
-  console.log('content', content)
+  const content = replyContentMap[replyid] || ''
+ 
   const data: replyCommentParam = {
     parentId,
     userId: piniaUserId.value,
@@ -670,7 +671,7 @@ const sendReply = async (replyid: number, type: number, replyName: string, paren
     useMessage(res.message, 'error');
     getCommentList(true);
   }
-  replyContentMap[parentId] = ''
+  replyContentMap[replyid] = ''
   replyingCommentId.value = null
 }
 // 获取文章内容

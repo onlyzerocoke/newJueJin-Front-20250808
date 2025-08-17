@@ -1,0 +1,30 @@
+// 全局初始化
+* {
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+// 全局变量
+$defaultTriangleColor: #515767;
+$defaultDeepWordColor: #1e9cff;
+$defautlShallowColor: #1e80ff;
+$defaultWordColor: #666b79;
+
+// Flex 布局工具类
+.center {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.between {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.start {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+}

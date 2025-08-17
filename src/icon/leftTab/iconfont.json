@@ -6,6 +6,20 @@
   "description": "",
   "glyphs": [
     {
+      "icon_id": "9568050",
+      "name": "切换",
+      "font_class": "qiehuan",
+      "unicode": "e647",
+      "unicode_decimal": 58951
+    },
+    {
+      "icon_id": "36001197",
+      "name": "徽章",
+      "font_class": "huizhang",
+      "unicode": "e6f0",
+      "unicode_decimal": 59120
+    },
+    {
       "icon_id": "4450051",
       "name": "扫描",
       "font_class": "saomiao1",
