@@ -19,7 +19,8 @@ export default {
 </script>
 
 <style>
-body {
+/* body {
     background-color: #F2F3F5;
-}
+       background-color: red !important;
+} */
 </style>

@@ -83,7 +83,7 @@
                   </section>
 
                   <section class="content">
-                    {{ getTruncatedContent(item.content, item.avatar)
+                    {{ getTruncatedContent(item.abstract, item.avatar)
                     }}
                   </section>
 
@@ -127,7 +127,7 @@
                   </section>
 
                   <section class="content">
-                    {{ getTruncatedContent(item.content, item.avatar)
+                    {{ getTruncatedContent(item.abstract, item.avatar)
                     }}
                   </section>
 
@@ -645,8 +645,6 @@ const getTruncatedContent = (content: string, ifImageLive: null | string) => {
   return content.length > charCount && ifImageLive != null
     ? content.slice(0, charCount) + '...'
     : content.slice(0, charCount) + '...'
-
-
 
 };
 

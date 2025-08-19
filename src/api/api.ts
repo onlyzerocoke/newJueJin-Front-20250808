@@ -9,7 +9,7 @@ import type {
     userLoginOrRegisterData
 } from './type/user'
 
-import type { articleListParam,articleListId } from './type/article'
+import type { articleListParam,articleListId,addPaperParam,getPaperParam } from './type/article'
 import type {sendParentParam,getCommentParam,addCommentPraiseParam,replyCommentParam} from './type/comment'
 //项目用户相关的请求地址
 
@@ -23,7 +23,9 @@ enum API {
     GETCOMMENT_URL = '/comment/getCommentList',//获取评论列表
     COMMENTPRAISE_URL='/comment/addCommentPraise',//点赞评论
     REPLYCOMMENT_URL = '/comment/replyComment',//回复评论
-    UPLOADAVATAR_URL = '/upload/uploadImage'//上传图片
+    UPLOADAVATAR_URL = '/upload/uploadImage',//上传图片
+    ADDPAPER_URL = '/article/addPaper',//发表文章
+    GETPAPERINFO_URL = '/article/getPaperInfo'//获取文章详情页信息
 }
 
 
@@ -73,4 +75,14 @@ export const reqReplyComment = (data:replyCommentParam)=>{
 //上传图片
 export const reqUploadAvatar = ()=>{
     return request.post<any,any>(API.UPLOADAVATAR_URL);
+}
+
+//发表文章
+export const reqAddPaper = (data:addPaperParam)=>{
+    return request.post<any,any>(API.ADDPAPER_URL,data);
+}
+
+//获取文章详情页信息
+export const reqPaperInfo = (data:getPaperParam)=>{
+    return request.post<any,any>(API.GETPAPERINFO_URL,data)
 }

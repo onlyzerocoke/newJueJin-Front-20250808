@@ -21,6 +21,10 @@ const tinymceCDN = 'https://fastly.jsdelivr.net/npm/tinymce-all-in-one@4.9.3/tin
 export default {
   name: 'Tinymce',
   props: {
+    imgMaxWidth: {
+      type: Number,
+      default: 80, // 默认 80px
+    },
     placeholder: {
       type: String,
       default: '' // 默认中文占位符
@@ -128,6 +132,7 @@ export default {
       const _this = this
       window.tinymce.init({
         placeholder: this.placeholder,  // ← 使用自定义占位符
+        imagetools_proxy: false, // 必须在这里
         language: this.language,
         selector: `#${this.tinymceId}`,
         height: this.height,
@@ -146,13 +151,14 @@ export default {
         code_dialog_width: 1000,
         content_style: `
   img {
-    max-width: 80px; /* 限制最大宽度 */
-    height: auto;     /* 等比例缩放 */
+    max-width: ${this.imgMaxWidth}px;
+    height: auto;
   }
 `,
         advlist_bullet_styles: 'default,circle,disc,square',
         //advlist_number_styles: 'default',
-        imagetools_cors_hosts: ['www.tinymce.com', 'codepen.io'],
+        imagetools_cors_hosts: ['www.tinymce.com', 'codepen.io', 'localhost'],
+
         default_link_target: '_blank',
         link_title: true,
         fontsize_formats: '12px 14px 16px 18px 24px 36px 48px 56px 72px',

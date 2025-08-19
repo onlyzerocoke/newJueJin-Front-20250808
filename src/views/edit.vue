@@ -86,13 +86,31 @@
 
 
                                             <div class="AbstractContententRight">
-                                                <el-input type="textarea" v-model="value" maxlength="100" 
-                                                    show-word-limit  rows="6"
-                                                    resize="none"
-                                                    placeholder="请输入摘要..."  :input-style="{ width: '30rem' }" ></el-input>
+                                                <el-input type="textarea" v-model="value" maxlength="100"
+                                                    show-word-limit rows="6" resize="none" placeholder="请输入摘要..."
+                                                    :input-style="{ width: '30rem' }"></el-input>
                                             </div>
 
                                         </section>
+
+                                        <el-divider></el-divider>
+
+                                        <section class="publishBtnContainer">
+
+                                            <div class="publishBtnContentLeft">
+
+                                            </div>
+
+                                            <div class="publishBtnContentRight">
+
+                                                <el-button type="primary" class="cancelBtn"
+                                                    @click="popoverVisible = false">取消</el-button>
+                                                <el-button type="primary" class="certainBtn"
+                                                    @click="reqAddArticle">确认并发布</el-button>
+                                            </div>
+
+                                        </section>
+
                                     </article>
                                 </div>
                             </div>
@@ -106,31 +124,32 @@
 
 
 
-                <a-avatar class="userAvatar" :src="piniaAvatar" :size="48"></a-avatar>
+                <a-avatar class="userAvatar" :src="piniaAvatar" :size="42"></a-avatar>
 
             </section>
 
 
 
-            <!-- <section class="titleContianer">
-         
+
+            <section class="titleContianer">
+
                 <el-form ref="ruleFormRef" style="max-width: 600px" :model="ruleForm" :rules="rules" label-width="auto"
                     label-position="left">
                     <el-form-item label="标题" prop="title" class="title">
-                        <el-input v-model="ruleForm.title" />
+                        <el-input v-model="ruleForm.title" placeholder="请输入标题" />
                     </el-form-item>
                 </el-form>
 
-            </section> -->
+            </section>
 
 
 
 
-
+ <!-- :toolbar="`bold italic underline | formatselect | blockquote code codesample | bullist numlist | link image | removeformat` -->
             <!-- @vue-ignore -->
-            <!-- <TinyMce :menubar="''" placeholder="请输入正文..."
-                :toolbar="`bold italic underline | formatselect | blockquote code codesample | bullist numlist | link image | removeformat`">
-            </TinyMce> -->
+            <TinyMce ref="editorRef" imgMaxWidth="400" :menubar="''" placeholder="请输入正文..."
+                :toolbar=toolbar>
+            </TinyMce>
 
 
         </article>
@@ -149,13 +168,17 @@ import useMainStore from '../Store/index'
 import { storeToRefs } from "pinia";
 import TinyMce from '../components/Tinymce/index.vue'
 import MySelect from '../components/MySelect .vue'
-
+import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { Plus } from '@element-plus/icons-vue'
 import type { UploadProps } from 'element-plus'
-import { reqUploadAvatar } from '../api/api'
+import { reqUploadAvatar, reqAddPaper,reqPaperInfo } from '../api/api'
+import { addPaperParam,getPaperParam} from '../api/type/article'
+import { forceLoginOut } from '../utils/repeatHooks'
+import {useMessage} from '../utils/elementComponents/message'
 const { userStore } = useMainStore();
-let { piniaAvatar } = storeToRefs(userStore);
+const router = useRouter();
+let { piniaAvatar, piniaUserId } = storeToRefs(userStore);
 const title = ref('')
 
 interface RuleForm {
@@ -173,7 +196,7 @@ interface RuleForm {
 
 const ruleFormRef = ref<FormInstance>()
 const ruleForm = reactive<RuleForm>({
-    title: '请输入标题',
+    title: '',
     region: '',
     count: '',
     date1: '',
@@ -189,13 +212,16 @@ const ruleForm = reactive<RuleForm>({
 const rules = reactive<FormRules<RuleForm>>({
     title: [
         { required: true, message: '请输入标题!', trigger: 'blur' },
-        { min: 3, max: 5, message: 'Length should be 3 to 5', trigger: 'blur' },
+
     ],
 
 })
 
 const Classification = ['后端', '前端', 'Android', 'iOS', '人工智能', '开发工具', '代码人生', '阅读']
-
+const toolbar = [
+  'searchreplace bold italic underline strikethrough alignleft aligncenter alignright outdent indent  blockquote undo redo removeformat subscript superscript code codesample hr bullist numlist link image charmap preview anchor pagebreak insertdatetime media table emoticons forecolor backcolor fullscreen',
+  'formatselect fontselect fontsizeselect'
+]
 let currentClassIndex = ref<number>(0);
 const clickClassItem = (index: number) => {
     currentClassIndex.value = index;
@@ -203,23 +229,127 @@ const clickClassItem = (index: number) => {
 
 const selectedTags = ref<string[]>([])
 const tagOptions = [
-    { label: '前端', value: 'frontend' },
-    { label: '后端', value: 'backend' },
-    { label: 'Android', value: 'android' },
-    { label: 'iOS', value: 'ios' },
-    { label: '人工智能', value: 'ai' },
-    { label: '开发工具', value: 'tools' },
-    { label: '代码人生', value: 'code' },
-    { label: '阅读', value: 'reading' },
-    { label: '前端2', value: 'frontend' },
-    { label: '后端2', value: 'backend' },
-    { label: 'Android2', value: 'android' },
-    { label: 'iOS2', value: 'ios' },
-    { label: '人工智能2', value: 'ai' },
-    { label: '开发工具2', value: 'tools' },
-    { label: '代码人生2', value: 'code' },
-    { label: '阅读2', value: 'reading' },
-]
+    { label: '后端', value: 0 },
+    { label: 'Java', value: 1 },
+    { label: 'Go', value: 2 },
+    { label: '架构', value: 3 },
+    { label: '面试', value: 4 },
+    { label: 'Spring Boot', value: 5 },
+    { label: 'Python', value: 6 },
+    { label: 'MySQL', value: 7 },
+    { label: '前端', value: 8 },
+    { label: 'Spring', value: 9 },
+    { label: 'Linux', value: 10 },
+    { label: '算法', value: 11 },
+    { label: 'HarmonyOS', value: 12 },
+    { label: '性能优化', value: 13 },
+    { label: 'JavaScript', value: 14 },
+    { label: '前端', value: 15 },
+    { label: 'JavaScript', value: 16 },
+    { label: 'Vue.js', value: 17 },
+    { label: 'React.js', value: 18 },
+    { label: '面试', value: 19 },
+    { label: 'CSS', value: 20 },
+    { label: 'HarmonyOS', value: 21 },
+    { label: '后端', value: 22 },
+    { label: 'HTML', value: 23 },
+    { label: 'TypeScript', value: 24 },
+    { label: '前端框架', value: 25 },
+    { label: 'three.js', value: 26 },
+    { label: '架构', value: 27 },
+    { label: 'Node.js', value: 28 },
+    { label: 'Flutter', value: 29 },
+    { label: 'Android', value: 30 },
+    { label: '前端', value: 31 },
+    { label: 'Kotlin', value: 32 },
+    { label: 'HarmonyOS', value: 33 },
+    { label: '面试', value: 34 },
+    { label: 'Android Jetpack', value: 35 },
+    { label: 'Flutter', value: 36 },
+    { label: 'Java', value: 37 },
+    { label: 'IOS', value: 38 },
+    { label: '架构', value: 39 },
+    { label: '逆向', value: 40 },
+    { label: 'APP', value: 41 },
+    { label: '性能优化', value: 42 },
+    { label: 'Android Studio', value: 43 },
+    { label: '后端', value: 44 },
+    { label: 'Swift', value: 45 },
+    { label: 'iOS', value: 46 },
+    { label: 'Apple', value: 47 },
+    { label: 'SwitftUI', value: 48 },
+    { label: '前端', value: 49 },
+    { label: 'Flutter', value: 50 },
+    { label: '变成语言', value: 51 },
+    { label: 'WWDC', value: 52 },
+    { label: '架构', value: 53 },
+    { label: 'Android', value: 54 },
+    { label: 'Xcode', value: 55 },
+    { label: 'APP', value: 56 },
+    { label: '数据库', value: 57 },
+    { label: '面试', value: 58 },
+    { label: 'Debug', value: 59 },
+    { label: '后端', value: 60 },
+    { label: '前端', value: 61 },
+    { label: 'AI编程', value: 62 },
+    { label: 'Trae', value: 63 },
+    { label: '开源', value: 64 },
+    { label: 'GitHub', value: 65 },
+    { label: '低代码', value: 66 },
+    { label: '人工智能', value: 67 },
+    { label: 'HarmonyOS', value: 68 },
+    { label: '程序员', value: 69 },
+    { label: 'Python', value: 70 },
+    { label: 'Cursor', value: 71 },
+    { label: 'JavaScript', value: 72 },
+    { label: '数据库', value: 73 },
+    { label: '资讯', value: 74 },
+    { label: '人工智能', value: 75 },
+    { label: 'AI编程', value: 76 },
+    { label: 'LLM', value: 77 },
+    { label: 'AIGC', value: 78 },
+    { label: '后端', value: 79 },
+    { label: '前端', value: 80 },
+    { label: 'MCP', value: 81 },
+    { label: '程序员', value: 82 },
+    { label: '算法', value: 83 },
+    { label: 'Python', value: 84 },
+    { label: 'OpenAI', value: 85 },
+    { label: 'Agent', value: 86 },
+    { label: '深度学习', value: 87 },
+    { label: 'Trae', value: 88 },
+    { label: 'Cursor', value: 89 },
+    { label: '前端', value: 90 },
+    { label: '后端', value: 91 },
+    { label: 'Python', value: 92 },
+    { label: '程序员', value: 93 },
+    { label: '算法', value: 94 },
+    { label: 'HarmonyOS', value: 95 },
+    { label: 'Java', value: 96 },
+    { label: 'AI编程', value: 97 },
+    { label: 'GitHub', value: 98 },
+    { label: 'JavaScript', value: 99 },
+    { label: '数据库', value: 100 },
+    { label: '开源', value: 101 },
+    { label: '爬虫', value: 102 },
+    { label: '架构', value: 103 },
+    { label: '面试', value: 104 },
+    { label: '程序员', value: 105 },
+    { label: '前端', value: 106 },
+    { label: '后端', value: 107 },
+    { label: '云原生', value: 108 },
+    { label: '算法', value: 109 },
+    { label: '人工智能', value: 110 },
+    { label: '面试', value: 111 },
+    { label: '大数据', value: 112 },
+    { label: 'Python', value: 113 },
+    { label: '数据库', value: 114 },
+    { label: 'Linux', value: 115 },
+    { label: 'JavaScript', value: 116 },
+    { label: 'LLM', value: 117 },
+    { label: '网络协议', value: 118 },
+    { label: 'AIGC', value: 119 },
+];
 
 //控制弹出框
 let popoverVisible = ref(false)
@@ -267,15 +397,22 @@ onBeforeUnmount(() => {
 //图片上传
 // @ts-ignore
 const url = import.meta.env.VITE_APP_BASE_API + '/upload/uploadImage';
-console.log("url", url);
 
+// 预览图片临时url
 const imageUrl = ref('')
+// 后端返回图片的真实url可以用于提交文章
 
+const localUrl = ref('')
 const handleAvatarSuccess: UploadProps['onSuccess'] = (
     response,
     uploadFile
 ) => {
     imageUrl.value = URL.createObjectURL(uploadFile.raw!)
+    if (response && response.location) {
+        localUrl.value = response.location
+    } else {
+        ElMessage.error('上传失败: 返回数据格式错误')
+    }
 }
 
 const beforeAvatarUpload: UploadProps['beforeUpload'] = (rawFile) => {
@@ -290,6 +427,7 @@ const beforeAvatarUpload: UploadProps['beforeUpload'] = (rawFile) => {
     return true
 }
 
+// 摘要
 const value = ref('')
 
 const mentionStyle = reactive({
@@ -305,6 +443,51 @@ watch(value, (newVal) => {
         value.value = newVal.slice(0, 100);
     }
 });
+
+const editorRef = ref();
+let thirstTag = ref<number>(-1);
+
+// 每组元素个数
+const groupSize = 15;
+
+// 计算出第三级标签在第n组的索引
+const getIndexInGroup = (value: any) => {
+    const indexInGroup = value % groupSize;
+    thirstTag.value = indexInGroup+1;
+}
+
+
+//发表文章
+const reqAddArticle = async () => {
+    const contnent = editorRef.value.getContent()
+
+    getIndexInGroup(selectedTags.value);
+    const data: addPaperParam = {
+        userId: piniaUserId.value,
+        title: ruleForm.title,
+        abstract: value.value,
+        content: contnent,
+        coverImage: localUrl.value,
+        type: currentClassIndex.value + 2,
+        thirstTag: thirstTag.value
+
+    }
+
+    const res = await reqAddPaper(data);
+
+    if (res.code == 401) {
+        forceLoginOut();
+        router.push('/');
+    }else if(res.code==202){
+        useMessage(res.msg,'warning')
+    }else if(res.code==200){
+        useMessage(res.msg,'success')
+        window.location.reload();
+    }
+
+}
+
+
 </script>
 
 <style lang="scss">
@@ -394,7 +577,7 @@ $defaultWordColor: #666b79;
                     // background-color: orange;
                 }
 
-                // margin-right: 37.5rem !important;
+                margin-right: 440px !important;
 
                 .icon {
                     font-size: 25px;
@@ -409,7 +592,7 @@ $defaultWordColor: #666b79;
                     padding: 5px 12px !important;
                     color: $defaultDeepWordColor;
                     border: 1.5px solid $defautlShallowColor;
-                    margin-right: 20px !important;
+                    margin: 0px 20px !important;
                     cursor: pointer;
                 }
 
@@ -420,13 +603,13 @@ $defaultWordColor: #666b79;
                 }
 
                 .icon-qiehuan {
-                    font-size: 40px;
-                    margin: 0px 40px !important;
+                    font-size: 20px;
+                    margin: 0px 20px !important;
                 }
 
                 .userAvatar {
-                    width: 80% !important;
-                    height: 80% !important;
+                    width: 60% !important;
+                    height: 60% !important;
                 }
             }
         }
@@ -463,6 +646,7 @@ $defaultWordColor: #666b79;
 
     .formContainer {
         @extend .center;
+
         // background-color: yellow;
         .ClassificationContainer {
             display: flex;
@@ -566,6 +750,7 @@ $defaultWordColor: #666b79;
             display: flex;
             align-items: flex-start;
             margin-top: 10px !important;
+            margin-bottom: 30px !important;
 
             .AbstractContententLeft {
                 @extend .start;
@@ -624,7 +809,151 @@ $defaultWordColor: #666b79;
     border-radius: 4px;
 }
 
-@media screen and (min-width: 320px) and (max-width: 345px) {
-    
+@media screen and (min-width: 320px) and (max-width:768px) {
+    .root .totalContainer .totalContentTop .totalContentLeft {
+        margin-right: 0px !important;
+    }
+
+}
+
+
+
+@media screen and (min-width: 320px) and (max-width: 375px) {
+
+
+
+
+    .root .totalContainer .totalContentTop .totalContentRight .craft {
+        display: inline-block; // 保证 margin 生效
+        margin: 15px !important;
+        padding: 5px 5px !important;
+
+    }
+
+
+    .root .totalContainer .totalContentTop .totalContentRight .icon-qiehuan {
+
+        margin: 0 20px !important;
+    }
+
+}
+
+@media screen and (min-width: 375px) and (max-width: 625px) {
+
+    .root .totalContainer .totalContentTop .totalContentLeft {
+        margin-right: 45px !important;
+    }
+
+
+    .root .totalContainer .totalContentTop .totalContentRight .craft {
+        display: inline-block; // 保证 margin 生效
+        margin: 15px !important;
+        padding: 5px 5px !important;
+
+    }
+
+
+    .root .totalContainer .totalContentTop .totalContentRight .icon-qiehuan {
+
+        margin: 0 25px !important;
+    }
+
+    .totalContentLeft {
+        margin-left: 0px !important;
+    }
+
+}
+
+@media screen and (min-width: 375px) and (max-width: 425px) {
+
+    .root .totalContainer .totalContentTop .totalContentLeft {
+        margin-right: 45px !important;
+    }
+
+
+
+
+}
+
+@media screen and (min-width: 425px) and (max-width: 525px) {
+
+    .root .totalContainer .totalContentTop .totalContentLeft {
+        margin-right: 120px !important;
+    }
+
+
+
+
+}
+
+@media screen and (min-width: 525px) and (max-width: 625px) {
+
+    .root .totalContainer .totalContentTop .totalContentLeft {
+        margin-right: 240px !important;
+    }
+
+}
+
+@media screen and (min-width: 625px) and (max-width: 725px) {
+
+    .root .totalContainer .totalContentTop .totalContentLeft {
+        margin-right: 300px !important;
+    }
+
+}
+
+@media screen and (min-width: 725px) and (max-width: 768px) {
+
+    .root .totalContainer .totalContentTop .totalContentLeft {
+        margin-right: 300px !important;
+    }
+
+}
+
+
+
+
+
+@media screen and (min-width:425px) and (max-width: 768px) {
+    .root .totalContainer .totalContentTop .totalContentRight .craft {
+        display: inline-block; // 保证 margin 生效
+        margin: 10px !important;
+        padding: 5px 5px !important;
+
+    }
+
+
+    .root .totalContainer .totalContentTop .totalContentRight .icon-qiehuan {
+
+        margin: 0 15px !important;
+    }
+
+}
+
+.publishBtnContainer {
+    margin-top: 20px !important;
+    @extend .between;
+
+    .publishBtnContentRight {
+        @extend .start;
+
+        .el-button {
+            margin-right: 10px !important;
+        }
+
+        .cancelBtn {
+            background-color: white;
+            padding: 10px 25px !important;
+            color: $defaultDeepWordColor;
+            border: 1px solid $defaultDeepWordColor;
+        }
+
+        .certainBtn {
+            background-color: $defaultDeepWordColor;
+            padding: 10px 15px !important;
+            color: white;
+            border: 1px solid #1E80FF;
+        }
+    }
 }
 </style>

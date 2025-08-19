@@ -9,8 +9,7 @@
           <section v-if="showElement">
             <div class="avatar">
               <div>
-                <a-avatar class="userAvatar"
-                  src="https://fuss10.elemecdn.com/a/3f/3302e58f9a181d2509f3dc0fa68b0jpeg.jpeg"></a-avatar>
+                <a-avatar class="userAvatar" :src="authorInfo?.avatar"></a-avatar>
               </div>
 
 
@@ -18,10 +17,19 @@
             <p class="follow">关注</p>
           </section>
 
-          <article class="iconContent" v-for="(item, index) in iconArr" :key=index>
-            <i :class="currentIndex == index ? item.activeName : item.defaultName"
-              @mouseenter="ifEnterIcon(true, index)" @mouseleave="ifEnterIcon(false, index)"></i>
-          </article>
+          <template v-for="(item, index) in iconArr" :key="index">
+            <el-badge class="item"
+              :value="item.commentNum == 0 ? (item.praiseNum == 0 ? (item.collectNum == 0 ? '' : item.collectNum) : item.praiseNum) : item.commentNum"
+              color="#C2C8D1" :badge-style="getCircleStyle(item, index)">
+              <article class="iconContent">
+                <i :class="item.ifPraised ? item.activeName : (currentIndex == index ? item.hoverName : item.defaultName)"
+                  @mouseenter="ifEnterIcon(true, index)" @mouseleave="ifEnterIcon(false, index)"
+                  @click="ifClickIcon(index)"></i>
+
+              </article>
+            </el-badge>
+          </template>
+
         </div>
       </div>
       <!-- 文章内容 -->
@@ -32,22 +40,21 @@
         <Back></Back>
 
         <article class="paperContent">
-          <h1>Flutter 使用 AI Curs用 AI Curs用 AI Curs用 AI Curs用 AI Curs用 AI Curs用 AI Curs用 AI Curs用 AI Curs用 AI Curs用 AI
-            Curs用 AI Curs用 AI Curs用 AI Curs用 AI Curs</h1>
+          <h1>{{ paperInfo?.title }}</h1>
         </article>
 
         <article class="infoContainer">
-          <p class="authorName">Ausey</p>
-          <P class="date">2025-08-06</P>
+          <p class="authorName">{{ paperInfo?.author }}</p>
+          <P class="date">{{ formatDate(paperInfo?.create_time) }}</P>
           <section class="view">
             <i class="icon iconfont icon-yanjing"></i>
-            <span>56</span>
+            <span>{{ paperInfo?.view }}</span>
           </section>
 
         </article>
 
         <article class="paperDeatail">
-          <div></div>
+          <div v-html="paperInfo?.content"></div>
         </article>
 
         <article class="commentContainer">
@@ -351,13 +358,12 @@
         <article class="rightPersonContent">
           <article class="baseInfo">
             <section class="authorAvatar">
-              <a-avatar class="userAvatar"
-                src="https://fuss10.elemecdn.com/a/3f/3302e58f9a181d2509f3dc0fa68b0jpeg.jpeg"></a-avatar>
+              <a-avatar class="userAvatar" :src="authorInfo?.avatar"></a-avatar>
             </section>
 
             <section class="nameAndOccupationContainer">
-              <p class="name">皮蛋小精灵</p>
-              <p class="occupation">前端开发</p>
+              <p class="name">{{ authorInfo?.name }}</p>
+              <p class="occupation">{{ authorInfo?.occupation }}</p>
 
             </section>
           </article>
@@ -365,17 +371,17 @@
           <div class="paperNumAndFansContainer">
             <article class="paperNumAndFansContent">
               <section class="paperNumAndFansItem">
-                <p>98</p>
+                <p>{{ authorInfo?.paperNum }}</p>
                 <p>文章</p>
               </section>
 
               <section class="paperNumAndFansItem">
-                <p>28k</p>
+                <p>{{ authorInfo?.views }}</p>
                 <p>阅读</p>
               </section>
 
               <section class="paperNumAndFansItem">
-                <p>51</p>
+                <p>{{ authorInfo?.fans }}</p>
                 <p>粉丝</p>
               </section>
 
@@ -392,16 +398,316 @@
 
       </div>
 
+      <!-- 评论区抽屉 -->
+      <el-drawer class="myDrawer" v-model="drawer" :with-header="false">
+        <article class="commentContainer">
+          <div class="commentContent">
+            <h3>评论&nbsp;{{ totalCommentNum }}</h3>
+
+            <div class="imageAndEditorContianer">
+
+              <article class="imageAndEditorContent">
+
+                <section class="userAvatar" v-if="piniaIfLogin">
+                  <a-avatar class="userAvatar" :src="piniaAvatar"></a-avatar>
+                </section>
+
+                <section class="userAvatar" v-else>
+                  <a-avatar class="userAvatar"
+                    src="https://i.postimg.cc/sXjP3kFs/a4fa5161369727154bc3a7d1c52bb9c0.png"></a-avatar>
+                </section>
+
+
+                <TinyMce ref="editorRef" v-model="mdlValue.fullText" :toolbar="toolbar" :width="480" :height="100"
+                  :menubar="''" v-if="piniaIfLogin" />
+
+                <div class="fakeEditorContainer" v-else>
+                  <article class="loginBtnContainer">
+                    <el-button type="primary" class="loginBtn" @click="open = true">登录&nbsp;|&nbsp;注册
+                    </el-button>
+                    <p>即可发布评论!</p>
+                  </article>
+                </div>
+
+              </article>
+
+            </div>
+          </div>
+
+
+
+        </article>
+
+        <article class="btnContainer">
+          <div class="blankBox"></div>
+          <el-button type="primary" class="sendBtn" @click="sendParentComment" v-if="piniaIfLogin">发送</el-button>
+        </article>
+
+        <article class="latestAndNewArrContainer">
+
+          <section v-for="(item, index) in latestAndNewArr" :key="index" @click="ifCurrentClick(index)"
+            :class="latestCurrentIndex == index ? 'activeColor' : ''">
+            {{ item }}
+          </section>
+
+        </article>
+
+        <template v-if="loading">
+          <skeleton :loading="loading"></skeleton>
+        </template>
+
+
+        <!-- 用户评论 -->
+        <template v-else-if="commentList.length > 0">
+          <article class="parentCommentContainer">
+
+            <section v-for="(item, index) in commentList" :key="index">
+              <div class="parentCommentContent">
+
+                <section class="vistorAvatar">
+                  <a-avatar class="userAvatar" :src="item.avatar"></a-avatar>
+                </section>
+
+
+                <section class="rightCommentContent">
+
+                  <section class="userInfo">
+                    <article class="nameAndOccupation">
+                      <p class="name">
+                        {{ item.name }}
+                      </p>
+
+                      <p class="occupation" v-if="item.occupation != null">
+                        {{ item.occupation }}
+                      </p>
+                    </article>
+                  </section>
+
+
+                  <p class="comment" v-html="item.content">
+
+                  </p>
+
+
+                  <section class="praiseAndDateContainer">
+                    <section class="userReply">
+                      <p class="date">
+                        {{ timeAgo(item.created_at) }}
+                      </p>
+
+                      <div class="praiseContainer">
+                        <i class="icon iconfont icon-zan1" v-if="item.praiseStatus" @click="commentPraise(item.id)"></i>
+                        <i class="icon iconfont icon-zan" v-else @click="commentPraise(item.id)"></i>
+                        <p>{{ item.like_count > 0 ? item.like_count : '点赞' }}</p>
+                      </div>
+
+                      <!-- 新增内容--回复父评论 -->
+                      <div class="toPraiseContainer" v-if="replyingCommentId === item.id && piniaIfLogin">
+                        <i class="icon iconfont icon-pinglunshixin"></i>
+                        <p class="cancelReplyWord" @click="replyingCommentId = null">取消回复</p>
+                      </div>
+
+                      <!-- 新增内容 item要变为ktem或jtem-->
+                      <div class="toPraiseContainer" @click="showReplyEditor(item.id)" v-else>
+                        <i class="icon iconfont icon-pinglun"></i>
+                        <p>{{ item.children.length > 0 ? item.children.length : '回复' }}</p>
+                      </div>
+
+
+                    </section>
+
+
+                    <!-- 新增内容 -->
+                    <!-- 富文本编辑器（只在当前回复的评论下显示） -->
+                    <div v-if="replyingCommentId === item.id && piniaIfLogin" class="replyEditor">
+                      <TinyMce v-model="replyContentMap[item.id]" :toolbar="toolbar" :width="480"
+                        @input="(val) => replyContentMap[item.id] = val" :height="100" :menubar="''" />
+
+                      <section class="replyBtnContainer">
+                        <div class="blankBox">
+
+                        </div>
+                        <el-button type="primary" size="small" @click="sendReply(item.id, 0, item.name, item.id)"
+                          class="replyBtn">发送</el-button>
+                      </section>
+                    </div>
+
+                  </section>
+                </section>
+
+
+              </div>
+
+              <div class="childrenCommentContainer">
+                <template v-for="(jtem, index) in item.children">
+                  <article class="childrenCommentContent">
+
+                    <section class="childrenCommentTop">
+                      <section class="sonVistorAvatar">
+                        <a-avatar class="sonUserAvatar" :src="jtem.avatar"></a-avatar>
+                      </section>
+                      <section class="nickName">
+                        <p class="vistorName">{{ jtem.name }}</p>
+                        <p class="authorSymbol" v-if="jtem.user_id == authorid">作者</p>
+                        <p v-if="jtem.type == 1">回复{{ jtem.replyname }}</p>
+                        <p class="symbol">:</p>
+                        <p class="sonComment" v-html="jtem.content">
+
+                        </p>
+                      </section>
+
+
+                    </section>
+
+                    <section class="childrenCommentBottom">
+
+                      <section class="praiseAndDateContainer">
+                        <p class="date">
+                          {{ timeAgo(jtem.created_at) }}
+                        </p>
+
+                        <div class="praiseContainer">
+                          <i class="icon iconfont icon-zan1" v-if="jtem.praiseStatus"
+                            @click="commentPraise(jtem.id)"></i>
+                          <i class="icon iconfont icon-zan" v-else @click="commentPraise(jtem.id)"></i>
+                          <p>{{ jtem.like_count > 0 ? jtem.like_count : '点赞' }}</p>
+                        </div>
+
+                        <!-- 新增内容--回复子评论 -->
+                        <div class="toPraiseContainer" v-if="replyingCommentId === jtem.id && piniaIfLogin">
+                          <i class="icon iconfont icon-pinglunshixin"></i>
+                          <p class="cancelReplyWord" @click="replyingCommentId = null">取消回复</p>
+                        </div>
+
+
+                        <!-- 新增内容 item要变为ktem或jtem-->
+                        <div class="toPraiseContainer" @click="showReplyEditor(jtem.id)" v-else>
+                          <i class="icon iconfont icon-pinglun"></i>
+                          <p>回复</p>
+                        </div>
+
+                      </section>
+
+                      <!-- 新增内容 -->
+                      <!-- 富文本编辑器（只在当前回复的评论下显示） -->
+                      <div v-if="replyingCommentId === jtem.id && piniaIfLogin" class="replyEditor">
+                        <TinyMce v-model="replyContentMap[jtem.id]" :toolbar="toolbar" :width="480" :height="100"
+                          :menubar="''" @input="(val) => replyContentMap[jtem.id] = val" />
+
+                        <section class="replyBtnContainer">
+                          <div class="blankBox">
+
+                          </div>
+                          <el-button type="primary" size="small" @click="sendReply(jtem.id, 1, jtem.name, item.id)"
+                            class="replyBtn">发送</el-button>
+                          <!-- <p>{{ jtem.name }}</p> -->
+                        </section>
+                      </div>
+                    </section>
+                  </article>
+
+                  <!-- <article class="childrenCommentContent" v-for="(ktem, index) in jtem.son">
+
+                    <section class="childrenCommentTop">
+                      <section class="sonVistorAvatar">
+                        <a-avatar class="sonUserAvatar" :src="ktem.avatar"></a-avatar>
+                      </section>
+                      <section class="nickName">
+                        <p class="vistorName">{{ ktem.name }}</p>
+                        <p class="authorSymbol" v-if="ktem.user_id == authorid">作者</p>
+                        <p>回复</p>
+                        <p>{{ ktem.replyname }}</p>
+                        <p class="symbol">:</p>
+                        <p class="sonComment" v-html="ktem.content">
+
+                        </p>
+                      </section>
+
+
+                    </section>
+
+                    <section class="childrenCommentBottom">
+
+                      <section class="praiseAndDateContainer">
+                        <p class="date">
+                          {{ timeAgo(ktem.created_at) }}
+                        </p>
+
+                        <div class="praiseContainer">
+                          <i class="icon iconfont icon-zan1" v-if="ktem.praiseStatus"
+                            @click="commentPraise(ktem.id)"></i>
+                          <i class="icon iconfont icon-zan" v-else @click="commentPraise(ktem.id)"></i>
+                          <p>{{ ktem.like_count > 0 ? ktem.like_count : '点赞' }}</p>
+                        </div>
+
+                        新增内容--回复子评论
+                        <div class="toPraiseContainer" v-if="replyingCommentId === ktem.id && piniaIfLogin">
+                          <i class="icon iconfont icon-pinglunshixin"></i>
+                          <p class="cancelReplyWord" @click="replyingCommentId = null">取消回复</p>
+                        </div>
+
+
+                        新增内容 item要变为ktem或jtem
+                        <div class="toPraiseContainer" @click="showReplyEditor(ktem.id)" v-else>
+                          <i class="icon iconfont icon-pinglun"></i>
+                          <p>回复</p>
+                        </div>
+
+                      </section>
+                      新增内容
+                      富文本编辑器（只在当前回复的评论下显示）
+                      <div v-if="replyingCommentId === ktem.id && piniaIfLogin" class="replyEditor">
+                        <TinyMce v-model="replyContentMap[ktem.id]" :toolbar="toolbar" :width="480" :height="100"
+                          :menubar="''" @input="(val) => replyContentMap[ktem.id] = val" />
+
+                        <section class="replyBtnContainer">
+                          <div class="blankBox">
+
+                          </div>
+                          <el-button type="primary" size="small" @click="sendReply(ktem.id, 1, ktem.name, item.id)"
+                            class="replyBtn">发送</el-button>
+                        </section>
+                      </div>
+
+                    </section>
+                  </article> -->
+                </template>
+
+              </div>
+            </section>
+
+
+            <template v-if="commentList.length == 3">
+              <el-button type="info" plain class="remainCommentBtn" @click="getCommentList(true)">
+                <p class="remainCommentBtnWord">查看全部{{ remainCommentNum }}条评论</p><el-icon class="el-icon--right">
+                  <ArrowDown />
+                </el-icon>
+              </el-button>
+            </template>
+
+
+          </article>
+        </template>
+
+        <!-- 无评论 -->
+        <template v-else>
+          <blankData message="暂无评论数据"></blankData>
+        </template>
+      </el-drawer>
+
     </main>
   </div>
 </template>
 
 <script lang="ts" setup>
 import { useRoute } from 'vue-router'
-import { ref, Ref, onMounted, onBeforeUnmount, reactive } from 'vue';
+import { ref, Ref, onMounted, onBeforeUnmount, reactive, computed } from 'vue';
+import type { ComputedRef } from 'vue'
 import Back from '../components/back.vue'
 import { storeToRefs } from "pinia";
 import type { sendParentParam, getCommentParam, addCommentPraiseParam, replyCommentParam } from '../api/type/comment'
+import type { getPaperParam, articleListId } from '../api/type/article'
+
 import '@opentiny/fluent-editor/style.css';
 import skeleton from './skeleton.vue';
 import { useRouter } from 'vue-router'
@@ -411,28 +717,42 @@ import {
 } from '@element-plus/icons-vue'
 import { useMessage } from '../utils/elementComponents/message'
 import useMainStore from '../Store/index'
-import { reqParentComment, reqCommentList, reqPraiseComment, reqReplyComment } from '../api/api';
+import { reqParentComment, reqCommentList, reqPraiseComment, reqReplyComment, reqPaperInfo, reqPraisePaper } from '../api/api';
 import { forceLoginOut } from '../utils/repeatHooks'
 import blankData from '../components/blankData.vue'
 const { userStore, useHeaderStore } = useMainStore();
-const { piniaUserId, piniaAvatar, piniaIfLogin } = storeToRefs(userStore);
+const { piniaUserId, piniaAvatar, piniaIfLogin, piniaFirstTag, piniaSecondTag } = storeToRefs(userStore);
 let { open } = storeToRefs(useHeaderStore);
 const route = useRoute()
 let paperId = route.params.id as string;
 const showElement = ref(false);
 
 type typeIcon = {
+  ifPraised: boolean,
   defaultName: string,
-  activeName: string
+  hoverName: string,
+  activeName: string,
+  ifShowBadge: boolean,
+  praiseNum: number | ComputedRef<number>,
+  commentNum: number | ComputedRef<number>,
+  collectNum: number | ComputedRef<number>,
 }
+
+// 总评论条数
+let totalCommentNum: Ref<number> = ref(0);
+// 总赞数
+let totalPraiseNum: Ref<number> = ref(0);
+
+const commentNum = computed(() => totalCommentNum.value)
+const praiseNum = computed(() => totalPraiseNum.value)
 // 图标名称
-const iconArr: typeIcon[] = [
-  { 'defaultName': 'icon iconfont icon-dianzan', 'activeName': 'icon iconfont icon-dianzan_kuai' },
-  { 'defaultName': 'icon iconfont icon-bg-chat', 'activeName': 'icon iconfont icon-duihua' },
-  { 'defaultName': 'icon iconfont icon-shoucang-yishoucang', 'activeName': 'icon iconfont icon-a-shoucang-yishoucang' },
-  { 'defaultName': 'icon iconfont icon-fenxiangyifenxiang', 'activeName': 'icon iconfont icon-fenxiang' },
-  { 'defaultName': 'icon iconfont icon-xinfangjubao', 'activeName': 'icon iconfont icon-jubao' },
-  { 'defaultName': 'icon iconfont icon-saomiao1', 'activeName': 'icon iconfont icon-saomiao' }]
+const iconArr = reactive<typeIcon[]>([
+  { 'ifPraised': false, 'defaultName': 'icon iconfont icon-dianzan', 'hoverName': 'icon iconfont icon-dianzan_kuai', 'activeName': 'icon iconfont icon-zan1', 'ifShowBadge': true, 'commentNum': 0, 'praiseNum': praiseNum, 'collectNum': 0 },
+  { 'ifPraised': false, 'defaultName': 'icon iconfont icon-bg-chat', 'hoverName': 'icon iconfont icon-duihua', 'activeName': '', 'ifShowBadge': true, commentNum, 'praiseNum': 0, 'collectNum': 0 },
+  { 'ifPraised': false, 'defaultName': 'icon iconfont icon-shoucang-yishoucang', 'hoverName': 'icon iconfont icon-a-shoucang-yishoucang', 'activeName': 'icon-shoucang_shixin', 'ifShowBadge': true, 'commentNum': 0, 'praiseNum': 0, 'collectNum': 0 },
+  { 'ifPraised': false, 'defaultName': 'icon iconfont icon-fenxiangyifenxiang', 'hoverName': 'icon iconfont icon-fenxiang', 'activeName': '', 'ifShowBadge': false, 'commentNum': 0, 'praiseNum': 0, 'collectNum': 0 },
+  { 'ifPraised': false, 'defaultName': 'icon iconfont icon-xinfangjubao', 'hoverName': 'icon iconfont icon-jubao', 'activeName': '', 'ifShowBadge': false, 'commentNum': 0, 'praiseNum': 0, 'collectNum': 0 },
+  { 'ifPraised': false, 'defaultName': 'icon iconfont icon-saomiao1', 'hoverName': 'icon iconfont icon-saomiao', 'activeName': '', 'ifShowBadge': false, 'commentNum': 0, 'praiseNum': 0, 'collectNum': 0 }])
 const handleScroll = () => {
   showElement.value = window.scrollY >= 200;
 };
@@ -444,6 +764,7 @@ const handleScroll = () => {
 onMounted(() => {
   getCommentList(false)
   window.addEventListener('scroll', handleScroll);
+  getPaperInfo();
 });
 
 onBeforeUnmount(() => {
@@ -518,8 +839,7 @@ let remainCommentNum: Ref<number> = ref(0)
 // 骨架屏状态
 let loading: Ref<boolean> = ref(true);
 
-// 总评论条数
-let totalCommentNum: Ref<number> = ref(0);
+
 // 获取评论
 const getCommentList = async (flag: boolean) => {
   ifClckAllComment.value = flag;
@@ -649,7 +969,7 @@ const sendReply = async (replyid: number, type: number, replyName: string, paren
 
   // const content = replyEditorRef.value.getContent()
   const content = replyContentMap[replyid] || ''
- 
+
   const data: replyCommentParam = {
     parentId,
     userId: piniaUserId.value,
@@ -684,10 +1004,95 @@ let authorid: Ref<number> = ref(0);
 const router = useRouter()
 // 返回首页
 const backIndex = () => {
-  router.push(`/`)
+  piniaSecondTag.value = 0;
+  router.push('/')
+  // router.back()
+  // window.location.reload();
+
+  // router.push(`/`)
+}
+
+let paperInfo = ref<any>();
+let authorInfo = ref<any>();
+
+//获取文章详情页信息
+const getPaperInfo = async () => {
+  const data: getPaperParam = {
+    userId: piniaUserId.value,
+    paperId: paperId
+  }
+
+  const res = await reqPaperInfo(data);
+  if (res.code == 200) {
+    paperInfo.value = res.data.articleInfo;
+    authorInfo.value = res.data.authorInfo;
+    iconArr[0].ifPraised = res.ifPraiseCurrentPaper;
+    totalPraiseNum.value = res.data.articleInfo.praise;
+  }
+
+}
+
+//格式化文章日期
+const formatDate = (dateTimeStr: string) => {
+  if (!dateTimeStr) return '';
+  return dateTimeStr.substring(0, 10);
+
+}
+//评论抽屉
+const drawer = ref(false);
+
+const ifClickIcon = async (index: number) => {
+
+  // 处理点赞逻辑
+  if (index == 0) {
+    const data: articleListId = {
+      paperId: Number(paperId)
+    }
+    const res = await reqPraisePaper(data)
+    iconArr[0].ifPraised = res.data?.praiseStatus;
+    totalPraiseNum.value = res.data?.praiseNum;
+  }
+
+  //处理评论逻辑
+  if (index == 1) {
+    drawer.value = !drawer.value;
+  }
+
+  //TODO:处理收藏逻辑
+  // if (iconArr[index].ifPraised) {
+
+  // }
 }
 
 
+
+// circle 样式默认值
+const defaultCircleStyle = {
+  backgroundColor: '#C2C8D1',
+  color: '#fff',
+  borderRadius: '50%',
+  padding: '5px !important'
+};
+
+// circle 样式 active 值
+const activeCircleStyle = {
+  backgroundColor: '#1E80FF',
+  color: '#fff',
+  borderRadius: '50%',
+  padding: '5px !important'
+};
+
+const getCircleStyle = (item: any, index: number) => {
+  const iconClass = item.ifPraised ? item.activeName : (currentIndex.value === index ? item.hoverName : item.defaultName);
+  // 如果当前 class 是 activeName 就返回 active 样式
+  if (iconClass === item.activeName && item.activeName !== '') {
+    return activeCircleStyle;
+  }
+  return defaultCircleStyle;
+};
+
+let editorWidth = ref(480);
+let editorHeight = ref(100);
 
 </script>
 
@@ -722,8 +1127,9 @@ $defaultWordColor: #666b79;
 }
 
 .root {
-  background-color: #F2F3F5;
+  // background-color: #F2F3F5;
   @extend .center;
+  background-color: #F2F3F5 !important;
 
   .leftIconContainer {
     position: fixed;
@@ -733,7 +1139,11 @@ $defaultWordColor: #666b79;
     align-items: center;
 
     .avatar {
+      @extend .center;
+      width: 40px;
+      height: 40px;
       background-color: white;
+      // background-color: yellow;
       padding: 7px !important;
       border-radius: 50%;
       display: flex;
@@ -741,8 +1151,8 @@ $defaultWordColor: #666b79;
       align-items: center;
 
       .userAvatar {
-        width: 27px;
-        height: 27px;
+        width: 40px;
+        height: 40px;
         border-radius: 50%;
       }
     }
@@ -895,7 +1305,7 @@ $defaultWordColor: #666b79;
 }
 
 .paperContainer {
-  width: 600px !important;
+  width: 750px !important;
   display: flex;
   flex-direction: column;
   padding: 10px !important;
@@ -937,6 +1347,7 @@ $defaultWordColor: #666b79;
 
 .commentContainer {
   @extend .start;
+  margin-top: 10px !important;
 
   .commentContent {
     display: flex;
@@ -1226,6 +1637,46 @@ $defaultWordColor: #666b79;
   img {
     max-width: 80px !important;
     height: auto !important;
+  }
+}
+
+.paperDeatail {
+  img {
+    max-width: 400px !important;
+    width: auto !important;
+    height: auto !important;
+    margin: 0 auto !important;
+  }
+}
+
+.myDrawer {
+  padding: 20px !important;
+}
+
+@media screen and (min-width:0px) and (max-width:600px) {
+  .rightPersonInfoContainer {
+    display: none !important;
+  }
+
+  .iconContent {
+    display: none !important;
+  }
+
+  .el-badge{
+    display: none !important;
+  }
+
+  .paperDeatail {
+    img {
+      max-width: 200px !important;
+    }
+
+  }
+
+  .paperContainer{
+    margin:0 auto;
+    width: 300px !important;
+    margin-left: -50px !important;
   }
 }
 </style>

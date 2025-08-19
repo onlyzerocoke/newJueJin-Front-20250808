@@ -12,3 +12,19 @@ export interface articleListParam {
   export interface articleListId {
     paperId: number; // 文章ID
   }
+
+
+  export interface addPaperParam {
+    userId: number; 
+    title: string; 
+    abstract: string;
+    content: string;
+    coverImage: string;
+    type:number;
+    thirstTag: number; // 用户ID
+  }
+
+   export interface getPaperParam {
+    userId: number,
+    paperId:string
+  }
