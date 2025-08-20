@@ -14,7 +14,8 @@
 
 
             </div>
-            <p class="follow">关注</p>
+            <p class="follow" v-show="!authorInfo?.followStatus" @click="toFocus">关注</p>
+            <p class="focusBlankBox">&nbsp;&nbsp;&nbsp;</p>
           </section>
 
           <template v-for="(item, index) in iconArr" :key="index">
@@ -44,13 +45,18 @@
         </article>
 
         <article class="infoContainer">
-          <p class="authorName">{{ paperInfo?.author }}</p>
-          <P class="date">{{ formatDate(paperInfo?.create_time) }}</P>
-          <section class="view">
-            <i class="icon iconfont icon-yanjing"></i>
-            <span>{{ paperInfo?.view }}</span>
+          <section class="infoContentLeft">
+            <p class="authorName">{{ paperInfo?.author }}</p>
+            <P class="date">{{ formatDate(paperInfo?.create_time) }}</P>
+            <section class="view">
+              <i class="icon iconfont icon-yanjing"></i>
+              <span>{{ paperInfo?.view }}</span>
+            </section>
           </section>
 
+
+          <el-button type="primary" class="focus" @click="toFocus" v-if="!authorInfo?.followStatus">关注</el-button>
+          <el-button type="primary" class="beFocusBtn" @click="toFocus" v-else>√ &nbsp;&nbsp;已关注</el-button>
         </article>
 
         <article class="paperDeatail">
@@ -75,8 +81,8 @@
                 </section>
 
 
-                <TinyMce ref="editorRef" v-model="mdlValue.fullText" :toolbar="toolbar" :width="480" :height="100"
-                  :menubar="''" v-if="piniaIfLogin" />
+                <TinyMce ref="editorRef" v-model="mdlValue.fullText" :toolbar="toolbar" :width="editorWidth"
+                  :height="editorHeight" :menubar="''" v-if="piniaIfLogin" />
 
                 <div class="fakeEditorContainer" v-else>
                   <article class="loginBtnContainer">
@@ -177,8 +183,8 @@
                     <!-- 新增内容 -->
                     <!-- 富文本编辑器（只在当前回复的评论下显示） -->
                     <div v-if="replyingCommentId === item.id && piniaIfLogin" class="replyEditor">
-                      <TinyMce v-model="replyContentMap[item.id]" :toolbar="toolbar" :width="480"
-                        @input="(val) => replyContentMap[item.id] = val" :height="100" :menubar="''" />
+                      <TinyMce v-model="replyContentMap[item.id]" :toolbar="toolbar" :width="editorWidth"
+                        :height="editorHeight" @input="(val) => replyContentMap[item.id] = val" :menubar="''" />
 
                       <section class="replyBtnContainer">
                         <div class="blankBox">
@@ -248,8 +254,8 @@
                       <!-- 新增内容 -->
                       <!-- 富文本编辑器（只在当前回复的评论下显示） -->
                       <div v-if="replyingCommentId === jtem.id && piniaIfLogin" class="replyEditor">
-                        <TinyMce v-model="replyContentMap[jtem.id]" :toolbar="toolbar" :width="480" :height="100"
-                          :menubar="''" @input="(val) => replyContentMap[jtem.id] = val" />
+                        <TinyMce v-model="replyContentMap[jtem.id]" :toolbar="toolbar" :width="editorWidth"
+                          :height="editorHeight" :menubar="''" @input="(val) => replyContentMap[jtem.id] = val" />
 
                         <section class="replyBtnContainer">
                           <div class="blankBox">
@@ -331,7 +337,10 @@
                 </template>
 
               </div>
+
+
             </section>
+
 
 
             <template v-if="commentList.length == 3">
@@ -388,7 +397,8 @@
             </article>
 
             <article class="btnContainer">
-              <el-button type="primary" class="focus">关注</el-button>
+              <el-button type="primary" class="focus" @click="toFocus" v-if="!authorInfo?.followStatus">关注</el-button>
+              <el-button type="primary" class="beFocusBtn" @click="toFocus" v-else>√ &nbsp;&nbsp;已关注</el-button>
               <el-button type="primary" plain class="private">私信</el-button>
             </article>
 
@@ -399,7 +409,7 @@
       </div>
 
       <!-- 评论区抽屉 -->
-      <el-drawer class="myDrawer" v-model="drawer" :with-header="false">
+      <el-drawer class="myDrawer" v-model="drawer" :with-header="false" size="drawerSize">
         <article class="commentContainer">
           <div class="commentContent">
             <h3>评论&nbsp;{{ totalCommentNum }}</h3>
@@ -418,8 +428,8 @@
                 </section>
 
 
-                <TinyMce ref="editorRef" v-model="mdlValue.fullText" :toolbar="toolbar" :width="480" :height="100"
-                  :menubar="''" v-if="piniaIfLogin" />
+                <TinyMce ref="editorRef" v-model="mdlValue.fullText" :toolbar="toolbar" :width="editorWidth"
+                  :height="editorHeight" :menubar="''" v-if="piniaIfLogin" />
 
                 <div class="fakeEditorContainer" v-else>
                   <article class="loginBtnContainer">
@@ -520,8 +530,8 @@
                     <!-- 新增内容 -->
                     <!-- 富文本编辑器（只在当前回复的评论下显示） -->
                     <div v-if="replyingCommentId === item.id && piniaIfLogin" class="replyEditor">
-                      <TinyMce v-model="replyContentMap[item.id]" :toolbar="toolbar" :width="480"
-                        @input="(val) => replyContentMap[item.id] = val" :height="100" :menubar="''" />
+                      <TinyMce v-model="replyContentMap[item.id]" :toolbar="toolbar" :width="editorWidth"
+                        :height="editorHeight" @input="(val) => replyContentMap[item.id] = val" :menubar="''" />
 
                       <section class="replyBtnContainer">
                         <div class="blankBox">
@@ -591,8 +601,8 @@
                       <!-- 新增内容 -->
                       <!-- 富文本编辑器（只在当前回复的评论下显示） -->
                       <div v-if="replyingCommentId === jtem.id && piniaIfLogin" class="replyEditor">
-                        <TinyMce v-model="replyContentMap[jtem.id]" :toolbar="toolbar" :width="480" :height="100"
-                          :menubar="''" @input="(val) => replyContentMap[jtem.id] = val" />
+                        <TinyMce v-model="replyContentMap[jtem.id]" :toolbar="toolbar" :width="editorWidth"
+                          :height="editorHeight" :menubar="''" @input="(val) => replyContentMap[jtem.id] = val" />
 
                         <section class="replyBtnContainer">
                           <div class="blankBox">
@@ -696,6 +706,30 @@
       </el-drawer>
 
     </main>
+
+    <!-- 0~600px显示的底部导航栏 -->
+    <div class="tabbar">
+      <template v-for="(item, index) in iconArr.slice(0, 3)" :key="index">
+        <article class="iconContent">
+          <i :class="item.ifPraised ? item.activeName : (currentIndex == index ? item.hoverName : item.defaultName)"
+            @mouseenter="ifEnterIcon(true, index)" @mouseleave="ifEnterIcon(false, index)"
+            @click="ifClickIcon(index)"></i>
+          <p>{{ item.commentNum == 0 ? (item.praiseNum == 0 ? (item.collectNum == 0 ? '' : item.collectNum) :
+            item.praiseNum) : item.commentNum }}</p>
+        </article>
+      </template>
+
+      <section>
+
+        <div class="avatar">
+          <div>
+            <a-avatar class="userAvatar" :src="authorInfo?.avatar"></a-avatar>
+          </div>
+        </div>
+        <p class="follow" v-show="!authorInfo?.followStatus" @click="toFocus">关注</p>
+
+      </section>
+    </div>
   </div>
 </template>
 
@@ -707,7 +741,7 @@ import Back from '../components/back.vue'
 import { storeToRefs } from "pinia";
 import type { sendParentParam, getCommentParam, addCommentPraiseParam, replyCommentParam } from '../api/type/comment'
 import type { getPaperParam, articleListId } from '../api/type/article'
-
+import type { focusUserParams } from '../api/type/user'
 import '@opentiny/fluent-editor/style.css';
 import skeleton from './skeleton.vue';
 import { useRouter } from 'vue-router'
@@ -717,7 +751,7 @@ import {
 } from '@element-plus/icons-vue'
 import { useMessage } from '../utils/elementComponents/message'
 import useMainStore from '../Store/index'
-import { reqParentComment, reqCommentList, reqPraiseComment, reqReplyComment, reqPaperInfo, reqPraisePaper } from '../api/api';
+import { reqParentComment, reqCommentList, reqPraiseComment, reqReplyComment, reqPaperInfo, reqPraisePaper, reqFocus } from '../api/api';
 import { forceLoginOut } from '../utils/repeatHooks'
 import blankData from '../components/blankData.vue'
 const { userStore, useHeaderStore } = useMainStore();
@@ -753,6 +787,7 @@ const iconArr = reactive<typeIcon[]>([
   { 'ifPraised': false, 'defaultName': 'icon iconfont icon-fenxiangyifenxiang', 'hoverName': 'icon iconfont icon-fenxiang', 'activeName': '', 'ifShowBadge': false, 'commentNum': 0, 'praiseNum': 0, 'collectNum': 0 },
   { 'ifPraised': false, 'defaultName': 'icon iconfont icon-xinfangjubao', 'hoverName': 'icon iconfont icon-jubao', 'activeName': '', 'ifShowBadge': false, 'commentNum': 0, 'praiseNum': 0, 'collectNum': 0 },
   { 'ifPraised': false, 'defaultName': 'icon iconfont icon-saomiao1', 'hoverName': 'icon iconfont icon-saomiao', 'activeName': '', 'ifShowBadge': false, 'commentNum': 0, 'praiseNum': 0, 'collectNum': 0 }])
+
 const handleScroll = () => {
   showElement.value = window.scrollY >= 200;
 };
@@ -765,10 +800,13 @@ onMounted(() => {
   getCommentList(false)
   window.addEventListener('scroll', handleScroll);
   getPaperInfo();
+  updateEditorSize(); // 初始化判断
+  window.addEventListener('resize', updateEditorSize);
 });
 
 onBeforeUnmount(() => {
   window.removeEventListener('scroll', handleScroll);
+  window.removeEventListener('resize', updateEditorSize);
 });
 
 let ifEnter: Ref<boolean> = ref(false);
@@ -1094,6 +1132,42 @@ const getCircleStyle = (item: any, index: number) => {
 let editorWidth = ref(480);
 let editorHeight = ref(100);
 
+const updateEditorSize = () => {
+  if (window.innerWidth < 601) {
+    editorWidth.value = 250;
+    editorHeight.value = 150;
+  } else if (600 < window.innerWidth && window.innerWidth < 1001) {
+    editorWidth.value = 400;
+    editorHeight.value = 200;
+  }
+
+  else {
+    editorWidth.value = 480;
+    editorHeight.value = 100;
+  }
+}
+
+
+
+//关注
+const toFocus = async () => {
+  const data: focusUserParams = {
+    userId: piniaUserId.value,
+    //@ts-ignore
+    authorId: authorInfo.value.id
+  }
+
+  const res = await reqFocus(data);
+
+  if (res.code == 400) {
+    useMessage(res.message, 'warning')
+  } else if (res.code == 401) {
+    forceLoginOut();
+  } else if (res.code == 200) {
+    authorInfo.value.fans = res.data.newFansNum;
+    authorInfo.value.followStatus = res.data.followStatus;
+  }
+}
 </script>
 
 <style lang="scss">
@@ -1130,6 +1204,8 @@ $defaultWordColor: #666b79;
   // background-color: #F2F3F5;
   @extend .center;
   background-color: #F2F3F5 !important;
+
+  // 或者直接去掉 overflow
 
   .leftIconContainer {
     position: fixed;
@@ -1182,7 +1258,8 @@ $defaultWordColor: #666b79;
     display: flex;
     justify-content: center;
     align-items: flex-start;
-
+    padding-bottom: 60px;
+    /* 留出给底部栏的空间 */
     margin-top: 20px !important;
 
     // width: 200px;
@@ -1297,7 +1374,7 @@ $defaultWordColor: #666b79;
   text-align: center;
   padding: 2px 3px !important;
   cursor: pointer;
-
+  margin-bottom: 10px !important;
 }
 
 .leftIconPlaceholder {
@@ -1320,8 +1397,26 @@ $defaultWordColor: #666b79;
 
 
 .infoContainer {
-  @extend .start;
+  @extend .between;
+
+  .infoContentLeft {
+
+    @extend .start;
+  }
+
+  .beFocusBtn {
+    display: none !important;
+  }
+
+  .focus {
+    display: none !important;
+  }
+
   margin: 10px 0px !important;
+
+  .focus {
+    padding: 5px 20px !important;
+  }
 
   p {
     margin-right: 10px !important;
@@ -1349,6 +1444,8 @@ $defaultWordColor: #666b79;
   @extend .start;
   margin-top: 10px !important;
 
+  // background-color: red;
+  // margin: 0 auto !important;
   .commentContent {
     display: flex;
     flex-direction: column;
@@ -1373,14 +1470,17 @@ $defaultWordColor: #666b79;
 }
 
 .sendBtn {
-  width: 10%;
+  // width: 10%;
+  padding: 5px 10px !important;
 
 }
 
 .btnContainer {
   @extend .between;
   margin-top: 10px !important;
+  width: 74%;
 
+  // background-color: red;
   .blankBox {
     width: 10px;
     height: 10px;
@@ -1653,19 +1753,74 @@ $defaultWordColor: #666b79;
   padding: 20px !important;
 }
 
+//0~600
+//0~600的公共样式
 @media screen and (min-width:0px) and (max-width:600px) {
   .rightPersonInfoContainer {
     display: none !important;
   }
 
-  .iconContent {
+  .leftIconContainer {
     display: none !important;
   }
 
-  .el-badge{
+  .el-badge {
     display: none !important;
   }
 
+
+
+  .btnContainer {
+    width: 90%;
+  }
+
+  //让tabbar不会因为上移而消失
+  .root {
+    position: relative;
+    overflow-x: hidden;
+    overflow-y: visible; // 或者直接去掉 overflow
+  }
+
+  .tabbar {
+    display: block !important;
+    width: 100%;
+    height: 50px;
+    bottom: 0;
+    position: fixed;
+    left: 0;
+    background-color: white;
+    z-index: 9999 !important;
+    border-top: 1px solid #E4E6EB;
+    display: flex !important;
+    justify-content: space-around; // 平均分布
+    align-items: center; // 垂直居中
+
+    .iconContent {
+      //  background-color: aqua;
+      display: flex;
+
+      p {
+        margin-left: 5px !important;
+      }
+    }
+
+    .avatar {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      width: 40px !important;
+      height: 40px !important;
+      border-radius: 50%;
+      // background-color: red !important;
+    }
+
+  }
+
+
+}
+
+
+@media screen and (max-width:320px) {
   .paperDeatail {
     img {
       max-width: 200px !important;
@@ -1673,10 +1828,253 @@ $defaultWordColor: #666b79;
 
   }
 
-  .paperContainer{
-    margin:0 auto;
-    width: 300px !important;
-    margin-left: -50px !important;
+  .paperContainer {
+    margin: 0 auto;
+    width: 350px !important;
+    // margin-left: -20px !important;
   }
+
+}
+
+@media screen and (min-width:320px) and (max-width:380px) {
+  .paperDeatail {
+    img {
+      max-width: 200px !important;
+    }
+
+  }
+
+  .paperContainer {
+    margin: 0 auto;
+    width: 350px !important;
+    margin-left: -20px !important;
+  }
+
+}
+
+@media screen and (min-width:380px) and (max-width:460px) {
+  .paperDeatail {
+    img {
+      max-width: 200px !important;
+    }
+
+  }
+
+  .paperContainer {
+    margin: 0 auto;
+    width: 400px !important;
+    margin-left: -20px !important;
+  }
+
+}
+
+@media screen and (min-width:380px) and (max-width:460px) {
+  .paperDeatail {
+    img {
+      max-width: 200px !important;
+    }
+
+  }
+
+  .paperContainer {
+    margin: 0 auto;
+    width: 400px !important;
+    margin-left: -20px !important;
+  }
+
+}
+
+@media screen and (min-width:460px) and (max-width:520px) {
+  .paperDeatail {
+    img {
+      max-width: 200px !important;
+    }
+
+  }
+
+  .paperContainer {
+    margin: 0 auto;
+    width: 450px !important;
+    margin-left: -20px !important;
+  }
+
+}
+
+@media screen and (min-width:520px) and (max-width:601px) {
+  .paperDeatail {
+    img {
+      max-width: 200px !important;
+    }
+
+  }
+
+  .paperContainer {
+    margin: 0 auto;
+    width: 490px !important;
+    margin-left: -20px !important;
+  }
+
+}
+
+//⬆
+
+//600~1000
+//600~1000的公共样式
+@media screen and (min-width:601px) and (max-width:1000px) {
+
+  .btnContainer {
+    width: 90%;
+  }
+
+  .rightPersonInfoContainer {
+    display: none !important;
+  }
+
+  .tabbar {
+    display: none;
+  }
+
+  // .paperContainer {
+  //   margin-left: 10px !important;
+  // }
+
+}
+
+
+@media screen and (min-width:601px) and (max-width:635px) {
+  .paperDeatail {
+
+    img {
+      max-width: 300px !important;
+
+    }
+
+  }
+
+  .paperContainer {
+    margin: 0 auto;
+    width: 480px !important;
+    margin-left: -5px !important;
+  }
+
+}
+
+@media screen and (min-width:635px) and (max-width:700px) {
+  .paperDeatail {
+
+    img {
+      max-width: 300px !important;
+
+    }
+
+  }
+
+  .paperContainer {
+    margin: 0 auto;
+    width: 540px !important;
+    margin-left: -5px !important;
+  }
+
+}
+
+@media screen and (min-width:700px) and (max-width:800px) {
+  .paperDeatail {
+
+    img {
+      max-width: 330px !important;
+
+    }
+
+  }
+
+  .paperContainer {
+    margin: 0 auto;
+    width: 540px !important;
+    margin-left: -5px !important;
+  }
+
+}
+
+@media screen and (min-width:800px) and (max-width:900px) {
+  .paperDeatail {
+
+    img {
+      max-width: 330px !important;
+
+    }
+
+  }
+
+  .paperContainer {
+    margin: 0 auto;
+    width: 580px !important;
+    // margin-left: -5px !important;
+  }
+
+}
+
+
+@media screen and (min-width:900px) and (max-width:1000px) {
+  .paperDeatail {
+
+    img {
+      max-width: 350px !important;
+
+    }
+
+  }
+
+  .paperContainer {
+    margin: 0 auto;
+    width: 700px !important;
+    // margin-left: -5px !important;
+  }
+
+}
+
+
+@media screen and (min-width:1000px) and (max-width:1100px) {
+  .paperDeatail {
+
+    img {
+      max-width: 350px !important;
+
+    }
+
+  }
+
+  .paperContainer {
+    margin: 0 auto;
+    width: 600px !important;
+    // margin-left: -5px !important;
+  }
+
+}
+
+
+.beFocusBtn {
+  background-color: #FFFFFF !important;
+  border: 1px solid #E4E6EB !important;
+  color: #949BA7 !important;
+
+}
+
+
+.tabbar {
+  display: none;
+}
+
+@media screen and (min-width:0px) and (max-width:1001px) {
+  .infoContainer {
+    .focus {
+      display: block !important;
+
+    }
+
+    .beFocusBtn {
+      display: block !important;
+    }
+  }
+
 }
 </style>

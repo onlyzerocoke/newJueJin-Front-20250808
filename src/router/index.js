@@ -4,6 +4,7 @@ import { createRouter, createWebHistory } from 'vue-router'
 import paper from '../views/paper.vue'
 import home from '../views/home.vue'
 import edit from '../views/edit.vue'
+import myhomepage from '../views/myhomepage.vue'
 const routes = [
     {
         path: '/',
@@ -21,6 +22,11 @@ const routes = [
         path:'/edit',
         name:'edit',
         component:edit
+    },
+    {
+        path:'/myHomepage',
+        name:'myHomepage',
+        component:myhomepage
     }
 
 ]

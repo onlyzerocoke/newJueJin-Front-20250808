@@ -189,23 +189,23 @@
             <section class="avatarListContent">
               <!-- 用户头像和用户名称 -->
               <article class="avatarListTopContent">
-                <el-avatar shape="circle" :size="50"></el-avatar>
-                <p>Ausey</p>
+                <el-avatar shape="circle" :size="50" :src="piniaAvatar"></el-avatar>
+                <p>{{ piniaUserName }}</p>
               </article>
               <!-- 关注、赞过和收藏 -->
               <article class="avatarListMiddleContent">
                 <section class="avatarListMiddleItem">
-                  <p>2</p>
+                  <p>{{ avatarInfo?.followNum }}</p>
                   <span>关注</span>
                 </section>
 
                 <section class="avatarListMiddleItem">
-                  <p>2</p>
+                  <p>{{ avatarInfo?.praisePaperIdNum }}</p>
                   <span>赞过</span>
                 </section>
 
                 <section class="avatarListMiddleItem">
-                  <p>2</p>
+                  <p>{{ avatarInfo?.collectPaperNum }}</p>
                   <span>收藏</span>
                 </section>
               </article>
@@ -362,7 +362,7 @@ import {
   computed,
   onUnmounted,
 } from "vue";
-import { reqLoginOrRegister, reqUserInfo, reqMessageCode } from "../api/api";
+import { reqLoginOrRegister, reqUserInfo, reqMessageCode, reqAvatarInfo } from "../api/api";
 import { ElMessage } from "element-plus";
 import { useMessage } from "../utils/elementComponents/message";
 import {
@@ -372,11 +372,13 @@ import {
   userPhoneData,
   userPhoneReponseData,
   userLoginOrRegisterData,
+  getAvatarInfoParams
 } from "../api/type/user";
 import { storeToRefs } from "pinia";
 import useMainStore from "../Store";
 import { useRouter } from 'vue-router'
 import QRCode from "qrcode";
+import { forceLoginOut } from "../utils/repeatHooks";
 let phone: Ref<string> = ref("");
 
 //@ts-ignore
@@ -484,6 +486,8 @@ onMounted(() => {
       }
     }
   );
+
+  toGetAvatarInfo();
 });
 
 let currentIndex: Ref<number> = ref(0);
@@ -653,8 +657,10 @@ const toggleExpand = () => {
 
 let code: Ref<string> = ref("");
 const { userStore, useHeaderStore } = useMainStore();
-let { piniaToken, piniaIfLogin, piniaAvatar, piniaUserId } = storeToRefs(userStore);
+let { piniaToken, piniaIfLogin, piniaAvatar, piniaUserId, piniaUserName } = storeToRefs(userStore);
 let { open } = storeToRefs(useHeaderStore);
+let avatarInfo = ref<any>();
+let userName = ref<string>('');
 // 登录或注册
 const handleLoinOrRegister = async () => {
   const data: userLoginOrRegisterData = {
@@ -674,11 +680,14 @@ const handleLoinOrRegister = async () => {
       piniaIfLogin.value = true;
       piniaAvatar.value = response.data.user.avatar;
       piniaUserId.value = response.data.user.id;
+      piniaUserName.value = response.data.user.name;
+
+      toGetAvatarInfo()
       // 关闭登录弹窗
       // open.value = false;
       useHeaderStore.closeModal()
       // 刷新页面
-      window.location.reload();
+      // window.location.reload();
     } else {
       // 登录失败
       ElMessage.error(response.message || "登录失败");
@@ -723,6 +732,7 @@ const handleGithubLogin = () => {
         piniaIfLogin.value = true;
         piniaAvatar.value = user.avatar;
         piniaUserId.value = user.id;
+        piniaUserName.value = user.name;
         // open.value = false;
         useHeaderStore.closeModal();
         window.location.reload();
@@ -748,6 +758,21 @@ const ifHasLogin = () => {
   }
 }
 
+
+
+//获取关注 赞过 收藏数量
+const toGetAvatarInfo = async () => {
+  const data: getAvatarInfoParams = {
+    userId: piniaUserId.value
+  }
+
+  const res = await reqAvatarInfo(data);
+  if (res.code == 200) {
+    avatarInfo.value = res.data;
+  } else if (res.code == 401) {
+    forceLoginOut();
+  }
+}
 </script>
 
 
@@ -813,6 +838,7 @@ $defaultWordColor: #666b79;
     @extend .between;
 
     background-color: white !important;
+
     .headerContentLeftBox {
       @extend .between;
       // background-color: aqua;
@@ -1094,6 +1120,7 @@ $defaultWordColor: #666b79;
         align-items: center;
         margin-right: 10px !important;
         padding: 10px !important;
+
         .imgContainer {
           width: 40px;
           height: 40px;
@@ -2570,7 +2597,7 @@ $defaultWordColor: #666b79;
   background-color: #1171EE !important;
 }
 
-.createCenterContentItem:hover{
+.createCenterContentItem:hover {
   background-color: #F7F8FA;
   padding: 10px !important;
 }

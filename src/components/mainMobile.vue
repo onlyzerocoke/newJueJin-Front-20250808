@@ -599,6 +599,8 @@ const handleResize = () => {
 }
 
 onMounted(() => {
+  // 重置标签为推荐
+  piniaSecondTag.value = 0;
   window.addEventListener('resize', handleResize)
 })
 

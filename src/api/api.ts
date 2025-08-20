@@ -6,7 +6,9 @@ import type {
     userInfoReponseData,
     userPhoneData,
     userPhoneReponseData,
-    userLoginOrRegisterData
+    userLoginOrRegisterData,
+    focusUserParams,
+    getAvatarInfoParams
 } from './type/user'
 
 import type { articleListParam,articleListId,addPaperParam,getPaperParam } from './type/article'
@@ -25,7 +27,9 @@ enum API {
     REPLYCOMMENT_URL = '/comment/replyComment',//回复评论
     UPLOADAVATAR_URL = '/upload/uploadImage',//上传图片
     ADDPAPER_URL = '/article/addPaper',//发表文章
-    GETPAPERINFO_URL = '/article/getPaperInfo'//获取文章详情页信息
+    GETPAPERINFO_URL = '/article/getPaperInfo',//获取文章详情页信息
+    FOCUSUSER_URL = '/user/focusUser',//关注
+    GETAVATARINFO_URL='/user/getAvatarInfo'// 获取关注 赞过 收藏的信息
 }
 
 
@@ -85,4 +89,15 @@ export const reqAddPaper = (data:addPaperParam)=>{
 //获取文章详情页信息
 export const reqPaperInfo = (data:getPaperParam)=>{
     return request.post<any,any>(API.GETPAPERINFO_URL,data)
+}
+
+//关注
+export const reqFocus = (data:focusUserParams)=>{
+    return request.post<any,any>(API.FOCUSUSER_URL,data)
+}
+
+
+/// 获取关注 赞过 收藏的信息
+export const reqAvatarInfo = (data:getAvatarInfoParams)=>{
+    return request.post<any,any>(API.GETAVATARINFO_URL,data)
 }
