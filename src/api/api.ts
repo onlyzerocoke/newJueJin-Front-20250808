@@ -10,7 +10,7 @@ import type {
     focusUserParams,
     getAvatarInfoParams
 } from './type/user'
-
+import type{actionsListParam} from './type/actions'
 import type { articleListParam,articleListId,addPaperParam,getPaperParam } from './type/article'
 import type {sendParentParam,getCommentParam,addCommentPraiseParam,replyCommentParam} from './type/comment'
 //项目用户相关的请求地址
@@ -29,7 +29,8 @@ enum API {
     ADDPAPER_URL = '/article/addPaper',//发表文章
     GETPAPERINFO_URL = '/article/getPaperInfo',//获取文章详情页信息
     FOCUSUSER_URL = '/user/focusUser',//关注
-    GETAVATARINFO_URL='/user/getAvatarInfo'// 获取关注 赞过 收藏的信息
+    GETAVATARINFO_URL='/user/getAvatarInfo',// 获取关注 赞过 收藏的信息
+    GETACTIONSLIST_URL='/actions/getActionsList'//获取动态信息
 }
 
 
@@ -100,4 +101,9 @@ export const reqFocus = (data:focusUserParams)=>{
 /// 获取关注 赞过 收藏的信息
 export const reqAvatarInfo = (data:getAvatarInfoParams)=>{
     return request.post<any,any>(API.GETAVATARINFO_URL,data)
+}
+
+//获取动态信息
+export const reqActionsList = (data:actionsListParam)=>{
+    return request.post<any,any>(API.GETACTIONSLIST_URL,data)
 }

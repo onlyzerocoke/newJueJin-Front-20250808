@@ -27,7 +27,7 @@
         <!-- PC端导航栏 -->
         <div class="ifShowPCNav">
           <section class="pcNavContainer">
-            <article class="navItem" v-for="(item, index) in functionsArr" :key="index">
+            <article class="navItem" v-for="(item, index) in functionsArr" :key="index" @click="tabToIndex(index)">
               {{ item }}
             </article>
 
@@ -212,7 +212,7 @@
 
               <!-- 我的主页 -->
               <article class="avatarListBottomContent">
-                <section class="avatarListBottomItem">
+                <section class="avatarListBottomItem" @click="toMyHomePage">
                   <i class="icon iconfont icon-touxiang2"></i>
                   <p>我的主页</p>
                 </section>
@@ -365,6 +365,7 @@ import {
 import { reqLoginOrRegister, reqUserInfo, reqMessageCode, reqAvatarInfo } from "../api/api";
 import { ElMessage } from "element-plus";
 import { useMessage } from "../utils/elementComponents/message";
+
 import {
   loginFormData,
   loginResponseData,
@@ -493,6 +494,7 @@ onMounted(() => {
 let currentIndex: Ref<number> = ref(0);
 const chooseIndexListItem = (index: number) => {
   currentIndex.value = index;
+  tabToIndex(index);
 };
 
 //判断当前屏幕是否为pc
@@ -687,7 +689,7 @@ const handleLoinOrRegister = async () => {
       // open.value = false;
       useHeaderStore.closeModal()
       // 刷新页面
-      // window.location.reload();
+      window.location.reload();
     } else {
       // 登录失败
       ElMessage.error(response.message || "登录失败");
@@ -749,6 +751,10 @@ const toEdit = () => {
   router.push('/edit');
 }
 
+//跳转到我的主页
+const toMyHomePage = () => {
+  router.push('/myhomepage');
+}
 const ifHasLogin = () => {
 
 
@@ -758,7 +764,15 @@ const ifHasLogin = () => {
   }
 }
 
+const toIndex = ()=>{
+  router.push('/');
+}
 
+const tabToIndex = (index:number)=>{
+  if(index == 0){
+    router.push('/');
+  }
+}
 
 //获取关注 赞过 收藏数量
 const toGetAvatarInfo = async () => {
@@ -771,6 +785,7 @@ const toGetAvatarInfo = async () => {
     avatarInfo.value = res.data;
   } else if (res.code == 401) {
     forceLoginOut();
+    toIndex();
   }
 }
 </script>
